@@ -97,12 +97,12 @@ async def get_nearby(data: SearchRequest):
     nearest_ids = list(idx.nearest((data.my_lat, data.my_lon), data.k))
 
     results = []
-    for s_id in nearest_ids:
-        node = spatial_nodes[s_id]
+    for n_id in nearest_ids:
+        node = spatial_nodes[n_id]
         logger.info("node")
         dist = calculate_haversine(data.my_lat, data.my_lon, node["lat"], node["lon"])
         results.append({
-            "node_id": s_id,
+            "node_id": n_id,
             "distance_km": round(dist / 1000, 2),
             "lat": node["lat"],
             "lon": node["lon"]
