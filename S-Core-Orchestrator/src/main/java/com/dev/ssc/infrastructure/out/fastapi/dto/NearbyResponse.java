@@ -4,10 +4,17 @@ package com.dev.ssc.infrastructure.out.fastapi.dto;
 import java.util.List;
 
 
-public record NearbyResponse {
+public record NearbyResponse (
+  Double lat,
+  Double lon
 
+) {
+    record Location(
+        int node_id,
+        Double
+    ) {}
 
-}
+ }
 
 //
 //public class NearbyResponse {

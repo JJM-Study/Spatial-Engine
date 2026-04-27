@@ -1,12 +1,31 @@
-//package com.dev.ssc.core.service;
-//
-//import com.dev.ssc.infrastructure.out.fastapi.dto.NearbyResponse;
-//import com.dev.ssc.infrastructure.out.fastapi.dto.SearchRequest;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.stereotype.Service;
-//import org.springframework.web.reactive.function.client.WebClient;
-//import reactor.core.publisher.Mono;
-//
+package com.dev.ssc.core.service;
+
+import com.dev.ssc.application.port.in.dto.SpatialSearchQuery;
+import com.dev.ssc.application.port.out.SpatialEnginePort;
+import com.dev.ssc.core.dto.SpatialResult;
+import com.dev.ssc.infrastructure.out.fastapi.dto.NearbyResponse;
+import com.dev.ssc.infrastructure.out.fastapi.dto.SearchRequest;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+
+@Service
+public class SpatialEngineService implements SpatialEnginePort {
+
+    private final WebClient webClient = WebClient.create("http://127.0.0.1:8000");
+
+
+    public Mono<SpatialResult> findNearby(SpatialSearchQuery query) {
+
+        var request = new (query.lat(), query);
+        return;
+    }
+}
+
+
 //@Service
 //public class SpatialEngineService {
 //    private final WebClient webClient = WebClient.create("http://127.0.0.1:8000");

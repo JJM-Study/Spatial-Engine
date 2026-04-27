@@ -11,5 +11,5 @@ import reactor.core.publisher.Mono;
 
 
 public interface SpatialEnginePort {
-    public Mono<SpatialResult> callExternalEngine(Double lat, Double lon, Integer k);
+    Mono<SpatialResult> callExternalEngine(Double lat, Double lon, Integer k);
 }

@@ -15,17 +15,17 @@ idx = index.Index()
 spatial_nodes = {}
 for i in range(1000):
     # 대구역 기준 반경 약 10km 이내 랜덤 좌표
-    s_lat = 35.87 + (0.1 * math.sin(i))
-    s_lon = 128.59 + (0.1 * math.cos(i))
+    # s_lat = 35.87 + (0.1 * math.sin(i))
+    # s_lon = 128.59 + (0.1 * math.cos(i))
+    # 서울역 기준 반경 약 10km 이내 랜덤 좌표
+    s_lat = 37.55 + (0.1 * math.sin(i))
+    s_lon = 126.97 + (0.1 * math.cos(i))
+
     spatial_nodes[i] = {"lat": s_lat, "lon": s_lon}
 
     # R-tree에 삽입 (반드시 사각형 형태인 (left, bottom, right, top)으로 넣어야 함)
     # 점(Point)이므로 left=right, bottom=top으로 설정
     idx.insert(i, (s_lat, s_lon, s_lat, s_lon))
-
-
-
-
 
 
 @app.get("/")
