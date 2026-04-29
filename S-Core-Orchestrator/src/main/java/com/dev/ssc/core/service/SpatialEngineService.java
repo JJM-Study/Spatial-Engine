@@ -8,6 +8,7 @@ import com.dev.ssc.core.dto.SpatialResult;
 import com.dev.ssc.infrastructure.out.fastapi.dto.NearbyResponse;
 import com.dev.ssc.infrastructure.out.fastapi.dto.SearchRequest;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,14 +19,21 @@ import reactor.core.publisher.Mono;
 
 
 @Service
+@RequiredArgsConstructor
 public class SpatialEngineService implements SpatialEngineUseCase {
 
-    private SpatialEnginePort spatialEnginePort;
+    private final SpatialEnginePort spatialEnginePort;
+
+//    SpatialEngineService(SpatialEnginePort spatialEnginePort) {
+//        this.spatialEnginePort = spatialEnginePort;
+//    }
 
     private static final Logger logger = LogManager.getLogger(SpatialEngineService.class);
 
     @Override
     public Mono<SpatialResult> findNearby(SpatialSearchQuery query) {
+
+        logger.info("SpatialEngineService Query : " + query);
 
         return spatialEnginePort.callExternalEngine(new SpatialEngineRequest(query.lat(), query.lon(), query.k()));
     }

@@ -39,15 +39,14 @@ public record NearbyResponse (
                 this.myLocation.myLat,
                 this.myLocation.myLon,
                 this.nearbyLocations.stream()
-                        .map(
-                        )
-
-                )
-
-
-        );
+                        .map(loc -> new SpatialResult.NodeInfo(
+                                loc.nodeId(),
+                                loc.distanceKm(),
+                                loc.lat(),
+                                loc.lon()
+                                )).toList()
+                );
     }
-
  }
 
 //

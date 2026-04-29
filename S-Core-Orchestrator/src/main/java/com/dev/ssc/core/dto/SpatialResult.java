@@ -14,7 +14,7 @@ public record SpatialResult(
 
 
         public record NodeInfo (
-            int n_id,
+            int node_id,
             Double distance,
             Double lat,
             Double lon

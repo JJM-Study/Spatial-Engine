@@ -3,9 +3,9 @@ package com.dev.ssc.application.port.in.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record SpatialSearchQuery(
-        Double lat,
-        Double lon,
-        int k
+        @JsonProperty("lat") Double lat,
+        @JsonProperty("lon") Double lon,
+        @JsonProperty("k") int k
 
 ) {
 

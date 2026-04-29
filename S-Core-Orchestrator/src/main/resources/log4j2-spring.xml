@@ -20,6 +20,10 @@
             <AppenderRef ref="File"/>
         </Logger>
 
+        <Logger name="org.springframework.web" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
         <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
