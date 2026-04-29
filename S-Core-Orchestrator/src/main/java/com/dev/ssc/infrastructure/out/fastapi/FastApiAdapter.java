@@ -1,6 +1,8 @@
 package com.dev.ssc.infrastructure.out.fastapi;
 
 import com.dev.ssc.application.port.out.SpatialEnginePort;
+import com.dev.ssc.application.port.out.dto.SpatialEngineRequest;
+import com.dev.ssc.core.dto.SpatialResult;
 import com.dev.ssc.infrastructure.out.fastapi.dto.NearbyResponse;
 import com.dev.ssc.infrastructure.out.fastapi.dto.SearchRequest;
 import org.springframework.stereotype.Component;
@@ -16,13 +18,15 @@ public class FastApiAdapter implements SpatialEnginePort {
     // 안쪽(Application/Core)은 바깥쪽(Infrastructure)을 절대로 몰라야 한다.
 
     @Override
-    public Mono<NearbyResponse> callExternalEngine(Double lat, Double lon, Integer k) {
+    public Mono<SpatialResult> callExternalEngine(SpatialEngineRequest request) {
 
         return webClient
                 .post()
                 .uri("/nearby")
+                .bodyValue(new SearchRequest(request.lat(), request.lon(), request.k())) // 처리
                 .retrieve()
-                .bodyToMono(NearbyResponse.class)
-                .bodyValue(new SearchRequest(lat, lon, k));
+                // new를 붙여서 힙 메모리 실제 공간 할당
+                .bodyToMono(NearbyResponse.class) // 반환
+                .map()
     }
 }

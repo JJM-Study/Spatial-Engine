@@ -1,11 +1,16 @@
 package com.dev.ssc.core.service;
 
+import com.dev.ssc.application.port.in.SpatialEngineUseCase;
 import com.dev.ssc.application.port.in.dto.SpatialSearchQuery;
 import com.dev.ssc.application.port.out.SpatialEnginePort;
+import com.dev.ssc.application.port.out.dto.SpatialEngineRequest;
 import com.dev.ssc.core.dto.SpatialResult;
 import com.dev.ssc.infrastructure.out.fastapi.dto.NearbyResponse;
 import com.dev.ssc.infrastructure.out.fastapi.dto.SearchRequest;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,15 +18,16 @@ import reactor.core.publisher.Mono;
 
 
 @Service
-public class SpatialEngineService implements SpatialEnginePort {
+public class SpatialEngineService implements SpatialEngineUseCase {
 
-    private final WebClient webClient = WebClient.create("http://127.0.0.1:8000");
+    private SpatialEnginePort spatialEnginePort;
 
+    private static final Logger logger = LogManager.getLogger(SpatialEngineService.class);
 
+    @Override
     public Mono<SpatialResult> findNearby(SpatialSearchQuery query) {
 
-        var request = new (query.lat(), query);
-        return;
+        return spatialEnginePort.callExternalEngine(new SpatialEngineRequest(query.lat(), query.lon(), query.k()));
     }
 }
 

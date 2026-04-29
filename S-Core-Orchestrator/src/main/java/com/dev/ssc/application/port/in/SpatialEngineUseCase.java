@@ -5,6 +5,6 @@ import com.dev.ssc.core.dto.SpatialResult;
 import reactor.core.publisher.Mono;
 
 public interface SpatialEngineUseCase {
-    Mono<SpatialResult> SpatialEngineService(SpatialSearchQuery spatialSearchQuery);
+    Mono<SpatialResult> findNearby(SpatialSearchQuery spatialSearchQuery);
 
 }
