@@ -1,27 +1,52 @@
 package com.dev.ssc.infrastructure.out.fastapi.dto;
 
 
+import com.dev.ssc.core.dto.SpatialResult;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
 
 public record NearbyResponse (
-  Double myLat,
-  Double myLon,
-  List<Location> nearbyLocations
+
+        @JsonProperty("my_location")
+        MyLocation myLocation,
+        @JsonProperty("nearby_locations")
+        List<Location> nearbyLocations
 
 ) {
-    record Location(
-        int node_id,
-        Double distance_km,
+    public record MyLocation (
+            @JsonProperty("lat") Double myLat,
+            @JsonProperty("lon") Double myLon
 
-        @JsonProperty("lat")
-        Double lat,
-        @JsonProperty("lon")
-        Double lon
+            ) {}
 
+    public record Location(
+
+            @JsonProperty("node_id")
+            int nodeId,
+            @JsonProperty("distance_km")
+            Double distanceKm,
+            @JsonProperty("lat")
+            Double lat,
+            @JsonProperty("lon")
+            Double lon
     ) {}
+
+    public SpatialResult toDomain() {
+
+        return new SpatialResult(
+                this.myLocation.myLat,
+                this.myLocation.myLon,
+                this.nearbyLocations.stream()
+                        .map(
+                        )
+
+                )
+
+
+        );
+    }
 
  }
 

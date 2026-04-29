@@ -23,10 +23,9 @@ public class FastApiAdapter implements SpatialEnginePort {
         return webClient
                 .post()
                 .uri("/nearby")
-                .bodyValue(new SearchRequest(request.lat(), request.lon(), request.k())) // 처리
+                .bodyValue(new SearchRequest(request.lat(), request.lon(), request.k())) // 처리 // new를 붙여서 힙 메모리 실제 공간 할당
                 .retrieve()
-                // new를 붙여서 힙 메모리 실제 공간 할당
                 .bodyToMono(NearbyResponse.class) // 반환
-                .map()
+                .map(response -> response.toDomain());
     }
 }
