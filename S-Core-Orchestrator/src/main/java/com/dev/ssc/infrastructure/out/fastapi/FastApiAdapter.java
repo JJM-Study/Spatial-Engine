@@ -1,5 +1,6 @@
 package com.dev.ssc.infrastructure.out.fastapi;
 
+import org.springframework.http.HttpStatusCode;
 import com.dev.ssc.application.port.out.SpatialEnginePort;
 import com.dev.ssc.application.port.out.dto.SpatialEngineRequest;
 import com.dev.ssc.core.dto.SpatialResult;
@@ -47,7 +48,16 @@ public class FastApiAdapter implements SpatialEnginePort {
                 .uri("/nearby")
                 .bodyValue(new SearchRequest(request.lat(), request.lon(), request.k())) // 처리 // new를 붙여서 힙 메모리 실제 공간 할당
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, .onStatus(HttpStatusCode::isError, response ->
+                        // 발생한 상태 코드를 에러 메시지로 변환하여 전송
+                        response.createException().flatMap(Mono::error)
+                )
                 .bodyToMono(NearbyResponse.class) // 반환
-                .map(NearbyResponse::toDomain);
+                .map(NearbyResponse::toDomain)
+                .onErrorResume(e -> {
+                            System.out.println("Exception : " + e.getMessage());
+                            return Mono.empty();
+                        });
+
     }
 }
