@@ -1,0 +1,37 @@
+Configuration:
+        status: INFO
+        Appenders:
+        Console:
+        name: Console
+        target: SYSTEM_OUT
+        PatternLayout:
+        pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
+        RollingFile:
+        name: File
+        fileName: logs/s-core-orchestrator.log
+        filePattern: "logs/s-core-orchestrator-%d{yyyy-MM-dd}.log.gz"
+        PatternLayout:
+        pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
+        Policies:
+        TimeBasedTriggeringPolicy:
+        interval: 1
+        modulate: true
+
+        Loggers:
+        logger:
+        - name: com.dev.ssc
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+        - ref: Console
+        - ref: File
+        - name: org.springframework.web
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+        ref: Console
+        Root:
+        level: INFO
+        AppenderRef:
+        - ref: Console
+        - ref: File

@@ -8,6 +8,7 @@ import com.dev.ssc.infrastructure.out.fastapi.dto.SearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -21,11 +22,18 @@ public class FastApiAdapter implements SpatialEnginePort {
 
     private static final Logger logger = LogManager.getLogger(FastApiAdapter.class);
 
-    public FastApiAdapter(WebClient.Builder webClientBuilder) {
+//    public FastApiAdapter(WebClient.Builder webClientBuilder) {
+//        this.webClient = webClientBuilder
+//                .baseUrl("http://127.0.0.1:8000")
+//                .build();
+//    }
+
+    public FastApiAdapter(WebClient.Builder webClientBuilder, @Value("${external.api.fastapi.url}") String baseUrl) {
         this.webClient = webClientBuilder
-                .baseUrl("http://127.0.0.1:8000")
+                .baseUrl(baseUrl)
                 .build();
     }
+
 
     // 안쪽(Application/Core)은 바깥쪽(Infrastructure)을 절대로 몰라야 한다.
 
