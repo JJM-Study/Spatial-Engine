@@ -1,13 +1,20 @@
 package com.dev.ssc.infrastructure.global.error;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import reactor.core.publisher.Mono;
 
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger Logger = LogManager.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(ExternalEngineException.class)
     public Mono<ResponseEntity<String>> handleExternalEngineError(ExternalEngineException e) {
         HttpStatus status = e.getErrorCode().getStatus();
