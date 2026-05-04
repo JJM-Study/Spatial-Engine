@@ -11,8 +11,6 @@ public record SpatialResult(
 
         List<NodeInfo> nearbyNodes
 ) {
-
-
         public record NodeInfo (
             int node_id,
             Double distance,
