@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger Logger = LogManager.getLogger(GlobalExceptionHandler.class);
+    private static final Logger logger = LogManager.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ExternalEngineException.class)
     public Mono<ResponseEntity<String>> handleExternalEngineError(ExternalEngineException e) {
@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
         String message = e.getErrorCode().getMessage();
 
 
-        System.out.println("전역 에러 로그: " + message + " | 에러코드: " + code);
+        logger.info("전역 에러 로그: " + message + " | 에러코드: " + code);
         return Mono.just(ResponseEntity
                 .status(status)
                 .body("엔진 에러 발생 : code {" + code + "}" + "message {" + message + "}"));

@@ -40,6 +40,10 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // YAML 설정을 읽기 위한 필수 라이브러리
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+
 
 }
 
@@ -48,4 +52,16 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+
+
+// 자바 컴파일 인코딩 설정
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+// 실행 시 인코딩 설정 (bootRun 혹은 JavaExec)
+tasks.withType<JavaExec> {
+    jvmArgs("-Dfile.encoding=UTF-8", "-Dconsole.encoding=UTF-8")
 }

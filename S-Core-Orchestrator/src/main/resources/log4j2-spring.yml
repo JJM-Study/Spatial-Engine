@@ -1,37 +1,41 @@
 Configuration:
-        status: INFO
+        status: DEBUG # 이 설정이 작동하면 Log4j2가 설정 파일을 읽는 과정이 콘솔에 찍힙니다.
+
         Appenders:
-        Console:
-        name: Console
-        target: SYSTEM_OUT
-        PatternLayout:
-        pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-        RollingFile:
-        name: File
-        fileName: logs/s-core-orchestrator.log
-        filePattern: "logs/s-core-orchestrator-%d{yyyy-MM-dd}.log.gz"
-        PatternLayout:
-        pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-        Policies:
-        TimeBasedTriggeringPolicy:
-        interval: 1
-        modulate: true
+                Console:
+                        name: Console
+                        target: SYSTEM_OUT
+                        PatternLayout:
+                                pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
+                                charset: UTF-8
+                RollingFile:
+                        name: File
+                        fileName: logs/s-core-orchestrator.log
+                        filePattern: "logs/s-core-orchestrator-%d{yyyy-MM-dd}.log.gz"
+                        PatternLayout:
+                                pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
+                                charset: UTF-8
+                        Policies:
+                                TimeBasedTriggeringPolicy:
+                                        interval: 1
+                                        modulate: true
 
         Loggers:
-        logger:
-        - name: com.dev.ssc
-        level: DEBUG
-        additivity: false
-        AppenderRef:
-        - ref: Console
-        - ref: File
-        - name: org.springframework.web
-        level: DEBUG
-        additivity: false
-        AppenderRef:
-        ref: Console
-        Root:
-        level: INFO
-        AppenderRef:
-        - ref: Console
-        - ref: File
+                Logger: # 'logger'(소문자) 대신 'Logger'(대문자) 리스트 형식을 권장합니다.
+                        - name: com.dev.ssc
+                          level: INFO
+                          additivity: false
+                          AppenderRef:
+                                  - ref: Console
+                                  - ref: File
+                        - name: org.springframework.web
+                          level: INFO
+                          additivity: false
+                          AppenderRef:
+                                  - ref: Console
+
+                Root:
+                        level: INFO
+                        AppenderRef:
+                                - ref: Console
+                                - ref: File

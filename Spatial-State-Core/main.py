@@ -105,8 +105,7 @@ async def get_nearby(data: SearchRequest):
             "lat": node["lat"],
             "lon": node["lon"]
         })
-        logger.info("results:" + results.__str__())
 
-
+    logger.info("results:" + results.__str__())
     return {"my_location": {"lat": data.my_lat, "lon": data.my_lon}, "nearby_locations": results}
 
