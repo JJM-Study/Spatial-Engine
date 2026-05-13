@@ -3,13 +3,17 @@ from pydantic import BaseModel
 from rtree import index
 from loguru import logger
 import math
+import uvicorn
 
 
-app = FastAPI()
 
 # 전역 변수로 인덱스 생성
 idx = index.Index()
 
+app = FastAPI()
+
+
+logger.info("Python lodded")
 
 # 가상의 상점 데이터 1,000개 생성 (테스트용)
 spatial_nodes = {}
@@ -18,8 +22,8 @@ for i in range(1000):
     # s_lat = 35.87 + (0.1 * math.sin(i))
     # s_lon = 128.59 + (0.1 * math.cos(i))
     # 서울역 기준 반경 약 10km 이내 랜덤 좌표
-    s_lat = 37.55 + (0.1 * math.sin(i))
-    s_lon = 126.97 + (0.1 * math.cos(i))
+    s_lat = 37.5559 + (0.01 * math.sin(i))
+    s_lon = 126.9723 + (0.01 * math.cos(i))
 
     spatial_nodes[i] = {"lat": s_lat, "lon": s_lon}
 
@@ -60,8 +64,8 @@ def calculate_haversine(lat1, lon1, lat2, lon2):
 
     # 라디안 변환
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lon2 - lon1)
-    dlambda = math.radians(lon2 - lon1)
+    dphi = math.radians(lat2 - lat1) # Delta Phi (Latitude)
+    dlambda = math.radians(lon2 - lon1) # Delta Lambda (Longitude)
 
     # 하버사인 공식 (LaTeX 수식 참고)
     a = math.sin(dphi / 2)**2 + \
@@ -109,3 +113,6 @@ async def get_nearby(data: SearchRequest):
     logger.info("results:" + results.__str__())
     return {"my_location": {"lat": data.my_lat, "lon": data.my_lon}, "nearby_locations": results}
 
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)

@@ -47,6 +47,12 @@ public class FastApiAdapter implements SpatialEnginePort {
 
         logger.info("callExternalEngine");
 
+        //try { ... }  = doOnSubscribe()요청 시작 직전 상태 확인
+        // Success (결과 반환) = doOnNext()데이터가 정상적으로 도착했을 때의 로그
+        // catch (Exception e) = doOnError()에러 발생 시 로그 (원본 에러 유지)
+        // finally { ... } = doFinally()성공/실패 여부와 상관없이 종료 시 실행
+
+        // JSON 정보도 출력되도록 하자.
         return webClient
                 .post()
                 .uri("/nearby")
@@ -58,6 +64,11 @@ public class FastApiAdapter implements SpatialEnginePort {
                 )
                 .bodyToMono(NearbyResponse.class) // 반환
                 .map(NearbyResponse::toDomain)
-                .onErrorMap(e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE));
+                // 역직렬화 자체는, 라이브러리 자체적으로 객체 생성 수행함을 감안
+                .doOnNext(e -> logger.info("callExternalEngine response : {}", e))
+                .doOnError(e -> logger.error("callExternalEngine error :", e))
+                .onErrorMap(e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE))
+                ;
+
     }
 }
