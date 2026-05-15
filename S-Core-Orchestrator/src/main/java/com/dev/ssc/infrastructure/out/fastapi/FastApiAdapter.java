@@ -53,6 +53,8 @@ public class FastApiAdapter implements SpatialEnginePort {
         // finally { ... } = doFinally()성공/실패 여부와 상관없이 종료 시 실행
 
         // JSON 정보도 출력되도록 하자.
+
+        // 2026/05/15 if-else 등으로 내외부 엔진을 나눌 경우, 코드 복잡도 증가 가능성..
         return webClient
                 .post()
                 .uri("/nearby")
