@@ -28,7 +28,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
     implementation("com.lmax:disruptor:3.4.4")
-
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.15")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 

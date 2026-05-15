@@ -30,6 +30,7 @@ public class SpatialEngineService implements SpatialEngineUseCase {
 
     private static final Logger logger = LogManager.getLogger(SpatialEngineService.class);
 
+    // 유효성 검사, 여러 엔진 사용 시 순서 조종 등 염두
     @Override
     public Mono<SpatialResult> findNearby(SpatialSearchQuery query) {
 

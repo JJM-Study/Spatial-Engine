@@ -2,11 +2,11 @@ package com.dev.ssc.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpEntity;
+import org.springframework.web.reactive.config.ResourceHandlerRegistry;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
-public class WebClientConfig {
+public class WebConfig {
 
     @Bean
     public WebClient.Builder webClientBuilder() {
@@ -22,5 +22,6 @@ public class WebClientConfig {
 //
 //        return webClient().
 //    }
+
 
 }
