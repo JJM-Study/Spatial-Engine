@@ -36,7 +36,7 @@ public class SpatialEngineService implements SpatialEngineUseCase {
 
         logger.info("SpatialEngineService Query : " + query);
 
-        return spatialEnginePort.callExternalEngine(new SpatialEngineRequest(query.lat(), query.lon(), query.k()));
+        return spatialEnginePort.execute(new SpatialEngineRequest(query.lat(), query.lon(), query.k()));
     }
 }
 

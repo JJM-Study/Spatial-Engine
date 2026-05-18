@@ -12,5 +12,6 @@ import reactor.core.publisher.Mono;
 
 
 public interface SpatialEnginePort {
-    Mono<SpatialResult> callExternalEngine(SpatialEngineRequest spatialEngineRequest);
+    Mono<SpatialResult> execute(SpatialEngineRequest spatialEngineRequest);
+
 }

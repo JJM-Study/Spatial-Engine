@@ -3,6 +3,7 @@ package com.dev.ssc.infrastructure.out.fastapi;
 import com.dev.ssc.infrastructure.global.error.ErrorCode;
 import com.dev.ssc.infrastructure.global.error.ExternalEngineException;
 import com.dev.ssc.infrastructure.global.error.GlobalExceptionHandler;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import com.dev.ssc.application.port.out.SpatialEnginePort;
@@ -19,7 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 // 생성자를 하나하나 쓰는 게 나을까, Bean에 올려두는 게 나을까 생각..
-@Component
+@Component @Order(1)
 public class FastApiAdapter implements SpatialEnginePort {
 
     //private final WebClient webClient = WebClient.create("http://127.0.0.1:8000");
@@ -43,7 +44,7 @@ public class FastApiAdapter implements SpatialEnginePort {
     // 안쪽(Application/Core)은 바깥쪽(Infrastructure)을 절대로 몰라야 한다.
 
     @Override
-    public Mono<SpatialResult> callExternalEngine(SpatialEngineRequest request) {
+    public Mono<SpatialResult> execute(SpatialEngineRequest request) {
 
         logger.info("callExternalEngine");
 
