@@ -70,8 +70,7 @@ public class FastApiAdapter implements SpatialEnginePort {
                 // 역직렬화 자체는, 라이브러리 자체적으로 객체 생성 수행함을 감안
                 .doOnNext(e -> logger.info("callExternalEngine response : {}", e))
                 .doOnError(e -> logger.error("callExternalEngine error :", e))
-                .onErrorMap(e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE))
-                ;
+                .onErrorMap(e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE));
 
     }
 }

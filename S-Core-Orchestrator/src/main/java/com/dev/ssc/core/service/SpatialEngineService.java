@@ -17,12 +17,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
 public class SpatialEngineService implements SpatialEngineUseCase {
 
-    private final SpatialEnginePort spatialEnginePort;
+    private final List<SpatialEnginePort> spatialEnginePorts;
 
 //    SpatialEngineService(SpatialEnginePort spatialEnginePort) {
 //        this.spatialEnginePort = spatialEnginePort;
@@ -36,7 +38,7 @@ public class SpatialEngineService implements SpatialEngineUseCase {
 
         logger.info("SpatialEngineService Query : " + query);
 
-        return spatialEnginePort.execute(new SpatialEngineRequest(query.lat(), query.lon(), query.k()));
+        return spatialEnginePorts.getFirst().execute(new SpatialEngineRequest(query.lat(), query.lon(), query.k()));
     }
 }
 
