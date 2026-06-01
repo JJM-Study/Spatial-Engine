@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 
@@ -20,11 +21,17 @@ public class GlobalExceptionHandler {
         HttpStatus status = e.getErrorCode().getStatus();
         String code = e.getErrorCode().getCode();
         String message = e.getErrorCode().getMessage();
-
+        int rawStatusCode = e.getRawStatusCode();
+        String rawResponseBody = e.getRawResponseBody();
 
         logger.info("전역 에러 로그: " + message + " | 에러코드: " + code);
+
+        logger.info("Failed to call external API. Response Status: {}, Body: {}", rawStatusCode, rawResponseBody);
+
         return Mono.just(ResponseEntity
                 .status(status)
                 .body("엔진 에러 발생 : code {" + code + "}" + "message {" + message + "}"));
     }
+
+
 }

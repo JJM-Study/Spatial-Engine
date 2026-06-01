@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 // 생성자를 하나하나 쓰는 게 나을까, Bean에 올려두는 게 나을까 생각..
@@ -70,7 +71,8 @@ public class FastApiAdapter implements SpatialEnginePort {
                 // 역직렬화 자체는, 라이브러리 자체적으로 객체 생성 수행함을 감안
                 .doOnNext(e -> logger.info("callExternalEngine response : {}", e))
                 .doOnError(e -> logger.error("callExternalEngine error :", e))
-                .onErrorMap(e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE));
-
+//                .onErrorMap(e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE));
+//                .onErrorMap(e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE));
+                .onErrorMap(WebClientResponseException.class, e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE, e, e.getStatusCode().value(), e.getResponseBodyAsString()));
     }
 }
