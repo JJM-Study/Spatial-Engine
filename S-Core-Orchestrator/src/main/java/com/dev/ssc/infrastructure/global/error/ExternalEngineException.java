@@ -30,6 +30,11 @@ public class ExternalEngineException extends RuntimeException {
         this(errorCode, null, 500, "Internal System Error");
     }
 
+    // 2026/06/03
+    public ExternalEngineException(ErrorCode errorCode, Throwable cause) {
+        this(errorCode, cause, 500, null);
+    }
+
     // 2026/06/01 추가
     // instanceOf로 종속시키기 곤란하다면, 아예 예외 호출 당시에 관련 에러들을 대입해서 에러로 보여주는 게...
     public ExternalEngineException(ErrorCode errorCode, Throwable cause, int rawStatusCode, String rawResponseBody) {

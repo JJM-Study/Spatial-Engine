@@ -5,6 +5,8 @@ import com.dev.ssc.application.port.in.dto.SpatialSearchQuery;
 import com.dev.ssc.application.port.out.SpatialEnginePort;
 import com.dev.ssc.application.port.out.dto.SpatialEngineRequest;
 import com.dev.ssc.core.dto.SpatialResult;
+import com.dev.ssc.infrastructure.global.error.ErrorCode;
+import com.dev.ssc.infrastructure.global.error.ExternalEngineException;
 import com.dev.ssc.infrastructure.out.fastapi.dto.NearbyResponse;
 import com.dev.ssc.infrastructure.out.fastapi.dto.SearchRequest;
 
@@ -38,7 +40,12 @@ public class SpatialEngineService implements SpatialEngineUseCase {
 
         logger.info("SpatialEngineService Query : " + query);
 
-        return spatialEnginePorts.getFirst().execute(new SpatialEngineRequest(query.lat(), query.lon(), query.k()));
+        return spatialEnginePorts.getFirst().execute(new SpatialEngineRequest(query.lat(), query.lon(), query.k()))
+                .onErrorResume(e -> {
+                        logger.error("Error occurred during failover to local engine");
+
+                        return spatialEnginePorts.getLast().execute(new SpatialEngineRequest(query.lat(), query.lon(), query.k()));
+                }).onErrorMap(e -> new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE, e));
     }
 }
 
