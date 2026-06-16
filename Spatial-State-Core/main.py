@@ -4,7 +4,7 @@ from rtree import index
 from loguru import logger
 import math
 import uvicorn
-
+import random
 
 
 # 전역 변수로 인덱스 생성
@@ -18,12 +18,14 @@ logger.info("Python lodded")
 # 가상의 상점 데이터 1,000개 생성 (테스트용)
 spatial_nodes = {}
 for i in range(1000):
-    # 대구역 기준 반경 약 10km 이내 랜덤 좌표
-    # s_lat = 35.87 + (0.1 * math.sin(i))
-    # s_lon = 128.59 + (0.1 * math.cos(i))
-    # 서울역 기준 반경 약 10km 이내 랜덤 좌표
-    s_lat = 37.5559 + (0.01 * math.sin(i))
-    s_lon = 126.9723 + (0.01 * math.cos(i))
+    # 0.0에서 0.1 사이의 무작위 반지름 결정 (11km 이내 내부 공간 채우기)
+    r = random.uniform(0, 0.1) 
+    
+    # 0에서 2*pi 사이의 무작위 회전 각도 결정
+    angle = random.uniform(0, 2 * math.pi)
+    
+    s_lat = 37.5559 + (r * math.sin(angle))
+    s_lon = 126.9723 + (r * math.cos(angle))
 
     spatial_nodes[i] = {"lat": s_lat, "lon": s_lon}
 

@@ -44,7 +44,7 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.fasterxml.jackson.core:jackson-databind")
 
-
+    implementation("com.github.davidmoten:rtree2:0.9.3")
 }
 
 
