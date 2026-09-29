@@ -3,6 +3,7 @@ package com.dev.ssc.infrastructure.out.local.engine;
 
 import com.dev.ssc.application.port.in.dto.SpatialSearchQuery;
 import com.dev.ssc.application.port.out.dto.SpatialEngineRequest;
+import com.dev.ssc.core.dto.NodeData;
 import com.dev.ssc.core.dto.SpatialResult;
 import com.dev.ssc.core.service.SpatialEngineService;
 import com.dev.ssc.infrastructure.out.fastapi.FastApiAdapter;
@@ -40,7 +41,10 @@ public class LocalSpatialEngine {
 
     private final Map<Integer, NodeData> nodeStorage = new ConcurrentHashMap<>();
 
-    public LocalSpatialEngine() {
+
+    private List<com.dev.ssc.core.dto.NodeData> listData;
+
+    public LocalSpatialEngine(List<com.dev.ssc.core.dto.NodeData> nodeData) {
         //  # 서울역 기준 반경 약 10km 이내 랜덤 좌표
         double centerLat = 37.5559;
         double centerLon = 126.9723;

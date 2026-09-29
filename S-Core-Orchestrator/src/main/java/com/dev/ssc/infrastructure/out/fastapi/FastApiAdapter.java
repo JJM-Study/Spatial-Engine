@@ -1,5 +1,6 @@
 package com.dev.ssc.infrastructure.out.fastapi;
 
+import com.dev.ssc.core.dto.NodeData;
 import com.dev.ssc.infrastructure.global.error.ErrorCode;
 import com.dev.ssc.infrastructure.global.error.ExternalEngineException;
 import com.dev.ssc.infrastructure.global.error.GlobalExceptionHandler;
@@ -20,12 +21,16 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 // 생성자를 하나하나 쓰는 게 나을까, Bean에 올려두는 게 나을까 생각..
 @Component @Order(1)
 public class FastApiAdapter implements SpatialEnginePort {
 
     //private final WebClient webClient = WebClient.create("http://127.0.0.1:8000");
     private final WebClient webClient;
+
+    private final List<NodeData> nodeData;
 
     private static final Logger logger = LogManager.getLogger(FastApiAdapter.class);
 
@@ -35,12 +40,12 @@ public class FastApiAdapter implements SpatialEnginePort {
 //                .build();
 //    }
 
-    public FastApiAdapter(WebClient.Builder webClientBuilder, @Value("${external.api.fastapi.url}") String baseUrl) {
+    public FastApiAdapter(WebClient.Builder webClientBuilder, @Value("${external.api.fastapi.url}") String baseUrl, List<NodeData> nodeData) {
         this.webClient = webClientBuilder
                 .baseUrl(baseUrl)
                 .build();
+        this.nodeData = nodeData;
     }
-
 
     // 안쪽(Application/Core)은 바깥쪽(Infrastructure)을 절대로 몰라야 한다.
 

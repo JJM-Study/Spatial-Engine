@@ -4,6 +4,7 @@ package com.dev.ssc.infrastructure.out.local;
 import com.dev.ssc.application.port.in.dto.SpatialSearchQuery;
 import com.dev.ssc.application.port.out.SpatialEnginePort;
 import com.dev.ssc.application.port.out.dto.SpatialEngineRequest;
+import com.dev.ssc.core.dto.NodeData;
 import com.dev.ssc.core.dto.SpatialResult;
 import com.dev.ssc.infrastructure.global.error.ErrorCode;
 import com.dev.ssc.infrastructure.global.error.ExternalEngineException;
@@ -25,7 +26,7 @@ import java.util.List;
 
 @Component
 @Order(2)
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class LocalEngineAdapter implements SpatialEnginePort {
 
     private static final Logger logger = LogManager.getLogger(LocalEngineAdapter.class);
@@ -33,9 +34,13 @@ public class LocalEngineAdapter implements SpatialEnginePort {
     // @Authorized 자체가 객체 생성 이후 주입이고, 동시성 문제 등도 생각해야하니, final로 지정 할 필요 있을 것 같다.
     private final LocalSpatialEngine localSpatialEngine;
 
-//    public LocalEngineAdapter() {
-//
-//    }
+    private final List<NodeData> nodeData;
+
+    public LocalEngineAdapter(LocalSpatialEngine localSpatialEngine, List<NodeData> nodeData) {
+        this.localSpatialEngine = localSpatialEngine;
+        this.nodeData = nodeData;
+
+    }
 
     @Override
     public Mono<SpatialResult> execute (SpatialEngineRequest request) {
