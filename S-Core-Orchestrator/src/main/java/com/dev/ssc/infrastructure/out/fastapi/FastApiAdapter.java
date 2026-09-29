@@ -30,21 +30,12 @@ public class FastApiAdapter implements SpatialEnginePort {
     //private final WebClient webClient = WebClient.create("http://127.0.0.1:8000");
     private final WebClient webClient;
 
-    private final List<NodeData> nodeData;
-
     private static final Logger logger = LogManager.getLogger(FastApiAdapter.class);
 
-//    public FastApiAdapter(WebClient.Builder webClientBuilder) {
-//        this.webClient = webClientBuilder
-//                .baseUrl("http://127.0.0.1:8000")
-//                .build();
-//    }
-
-    public FastApiAdapter(WebClient.Builder webClientBuilder, @Value("${external.api.fastapi.url}") String baseUrl, List<NodeData> nodeData) {
+    public FastApiAdapter(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder
-                .baseUrl(baseUrl)
+                .baseUrl("http://127.0.0.1:8000")
                 .build();
-        this.nodeData = nodeData;
     }
 
     // 안쪽(Application/Core)은 바깥쪽(Infrastructure)을 절대로 몰라야 한다.

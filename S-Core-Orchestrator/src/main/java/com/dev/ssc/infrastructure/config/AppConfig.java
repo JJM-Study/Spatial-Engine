@@ -20,14 +20,19 @@ import java.util.List;
 public class AppConfig {
 
 //    public LocalSpatialEngine forSpatialNodes(@Qualifier("forSpatialNodes")
+
+    // 2026/09/29 추가
     public SpatialEnginePort localSpatialNodes(LocalSpatialEngine localSpatialEngine, @Qualifier("forSpatialNodes") List<NodeData> forSpatialNodes) {
 //        return new LocalEngineAdapter(forSpatialNodes);
         return new LocalEngineAdapter(localSpatialEngine, forSpatialNodes);
     }
-
-//    public LocalSpatialEngine forSpatialNodes(WebClient.Builder webClientBuilder, @Value("${external.api.fastapi.url}") String baseUrl, @Qualifier("forSpatialNodes") List<NodeData> forSpatialNodes) {
-////        return new LocalEngineAdapter(forSpatialNodes);
-//        return new LocalEngineAdapter(webClientBuilder, baseUrl,forSpatialNodes);
+//
+//    public SpatialEnginePort fastSpatialNodes(WebClient.Builder webClientBuilder, @Value("${external.api.fastapi.url}") String baseUrl, @Qualifier("forSpatialNodes") List<NodeData> forSpatialNodes){
+//
+//        return new FastApiAdapter(webClientBuilder, baseUrl, forSpatialNodes);
 //    }
+//////        return new LocalEngineAdapter(forSpatialNodes);
+////        return new LocalEngineAdapter(webClientBuilder, baseUrl,forSpatialNodes);
+////    }
 
 }
