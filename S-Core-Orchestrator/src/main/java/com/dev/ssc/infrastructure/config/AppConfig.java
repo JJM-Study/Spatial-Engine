@@ -30,21 +30,4 @@ public class AppConfig {
 //        return new LocalEngineAdapter(webClientBuilder, baseUrl,forSpatialNodes);
 //    }
 
-//
-//    @Configuration
-//    public class AppConfig {
-//
-//        // 1. [진짜 엔진] CSV 데이터를 넣어서 인메모리 R-Tree 엔진 본체를 만듦
-//        @Bean
-//        public LocalSpatialEngine localSpatialEngine(List<NodeData> forSpatialNodes) {
-//            return new LocalSpatialEngine(forSpatialNodes);
-//        }
-//
-//        // 2. [어댑터] 위에서 만든 엔진을 껍데기(어댑터)로 감싸서 'SpatialEnginePort' 표준 규격으로 등록
-//        @Bean
-//        public SpatialEnginePort localEngineAdapter(LocalSpatialEngine localSpatialEngine) {
-//            return new LocalEngineAdapter(localSpatialEngine); // 어댑터 리턴!
-//        }
-//    }
-
 }
