@@ -47,7 +47,7 @@ public class LocalEngineAdapter implements SpatialEnginePort {
 
         logger.info("LocalEngine executed");
         return localSpatialEngine.get_nearby(
-                        new LocalEngineRequest(request.lat(), request.lon(), request.k())
+                        new LocalEngineRequest(request.lon(), request.lat(), request.k())
                 )
                 .map(LocalEngineResponse::toDomain)
                 .onErrorMap(Throwable.class, e -> {

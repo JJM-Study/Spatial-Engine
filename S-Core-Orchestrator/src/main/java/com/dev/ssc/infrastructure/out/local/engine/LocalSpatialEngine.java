@@ -36,7 +36,7 @@ public class LocalSpatialEngine {
 
     private static final Logger logger = LogManager.getLogger(LocalSpatialEngine.class);
 
-    public record NodeData(int nodeId, double lat, double lon) {}
+    public record NodeData(int nodeId, double lon, double lat) {}
 
     // 2026/10/07 수정
     //RTree<Integer, Point> localRtree = RTree.star().create();
@@ -80,7 +80,7 @@ public class LocalSpatialEngine {
 
             // 2026/10/07 수정
             //localRtree = localRtree.add(i, Geometries.point(nodeData.get(i).lat(), nodeData.get(i).lon()));
-            localRtree = localRtree.add(new NodeData(i, nodeData.get(i).lat(), nodeData.get(i).lon()), Geometries.point(nodeData.get(i).lat(), nodeData.get(i).lon()));
+            localRtree = localRtree.add(new NodeData(i, nodeData.get(i).lon(), nodeData.get(i).lat()),Geometries.point(nodeData.get(i).lon(), nodeData.get(i).lat()));
         }
 
 //        logger.info("Rtree 임의 10km 내 장소 1000군데 할당 완료.");
@@ -91,7 +91,7 @@ public class LocalSpatialEngine {
     public Mono<LocalEngineResponse> get_nearby(LocalEngineRequest request) {
         logger.info("Local Get_Nearby executed");
 
-        Point myPoint = Geometries.point(request.lat(), request.lon());
+        Point myPoint = Geometries.point(request.lon(), request.lat());
         logger.info("myPoint:{}", myPoint);
 //        Iterable<Entry<Integer, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, request.k());
         Iterable<Entry<NodeData, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, request.k());
@@ -105,7 +105,7 @@ public class LocalSpatialEngine {
 
             if (node != null) {
 
-                double distanceMeter = calculateHaversineMeter(request.lat(), request.lon(), node.lat, node.lon);
+                double distanceMeter = calculateHaversineMeter(request.lon(), request.lat(), node.lon, node.lat);
 
                 double distanceKm = distanceMeter / 1000.0;
 
@@ -114,8 +114,9 @@ public class LocalSpatialEngine {
                 locations.add(new LocalEngineResponse.Location(
                         node.nodeId(),
                         roundedDistanceKm,
-                        node.lat,
-                        node.lon)
+                        node.lon,
+                        node.lat
+                        )
                 );
             }
         }
@@ -123,12 +124,12 @@ public class LocalSpatialEngine {
         logger.info("result : {}", locations);
 
         return Mono.just(new LocalEngineResponse(
-                        new LocalEngineResponse.MyLocation(request.lat(), request.lon()),
+                        new LocalEngineResponse.MyLocation(request.lon(), request.lat()),
                 locations));
 
     }
 
-    public double calculateHaversineMeter(double lat1, double lon1, double lat2, double lon2) {
+    public double calculateHaversineMeter(double lon1, double lat1, double lon2, double lat2) {
 
         final double R = 6371000;
 

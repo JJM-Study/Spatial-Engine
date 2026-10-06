@@ -18,29 +18,31 @@ public record LocalEngineResponse(
 ) {
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public record MyLocation(
-            Double myLat,
-            Double myLon
+            Double myLon,
+            Double myLat
+
     ) {}
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public record Location(
         int nodeId,
         Double distanceKm,
-        Double lat,
-        Double lon
+        Double lon,
+
+        Double lat
     ) {}
 
     public SpatialResult toDomain() {
 
         return new SpatialResult(
-                this.myLocation().myLat,
                 this.myLocation().myLon,
+                this.myLocation().myLat,
                 this.nearbyLocations.stream()
                         .map(loc -> new SpatialResult.NodeInfo(
                                         loc.nodeId(),
                                         loc.distanceKm(),
-                                        loc.lat(),
-                                        loc.lon()
+                                        loc.lon(),
+                                        loc.lat()
                         )).toList()
         );
     }

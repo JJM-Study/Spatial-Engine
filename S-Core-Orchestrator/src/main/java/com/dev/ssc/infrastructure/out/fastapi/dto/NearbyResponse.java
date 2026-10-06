@@ -16,8 +16,8 @@ public record NearbyResponse (
 
 ) {
     public record MyLocation (
-            @JsonProperty("lat") Double myLat,
-            @JsonProperty("lon") Double myLon
+            @JsonProperty("lon") Double myLon,
+            @JsonProperty("lat") Double myLat
 
             ) {}
 
@@ -27,23 +27,23 @@ public record NearbyResponse (
             int nodeId,
             @JsonProperty("distance_km")
             Double distanceKm,
-            @JsonProperty("lat")
-            Double lat,
             @JsonProperty("lon")
-            Double lon
+            Double lon,
+            @JsonProperty("lat")
+            Double lat
     ) {}
 
     public SpatialResult toDomain() {
 
         return new SpatialResult(
-                this.myLocation.myLat,
                 this.myLocation.myLon,
+                this.myLocation.myLat,
                 this.nearbyLocations.stream()
                         .map(loc -> new SpatialResult.NodeInfo(
                                 loc.nodeId(),
                                 loc.distanceKm(),
-                                loc.lat(),
-                                loc.lon()
+                                loc.lon(),
+                                loc.lat()
                                 )).toList()
                 );
     }

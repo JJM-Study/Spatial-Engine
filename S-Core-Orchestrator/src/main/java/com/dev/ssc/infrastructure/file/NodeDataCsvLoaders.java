@@ -71,8 +71,8 @@ public class NodeDataCsvLoaders {
 
         // groupby 된 것에 대한 값들의 순회
         return new NodeData(
-                entry.getKey().lat,
                 entry.getKey().lon,
+                entry.getKey().lat,
                 entry.getValue().
                         stream().
                         map(NodeDataCsvLoaders::toMetaNode).

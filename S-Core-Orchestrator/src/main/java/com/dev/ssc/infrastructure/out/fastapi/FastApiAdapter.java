@@ -56,7 +56,7 @@ public class FastApiAdapter implements SpatialEnginePort {
         return webClient
                 .post()
                 .uri("/nearby")
-                .bodyValue(new SearchRequest(request.lat(), request.lon(), request.k())) // 처리 // new를 붙여서 힙 메모리 실제 공간 할당
+                .bodyValue(new SearchRequest(request.lon(), request.lat(), request.k())) // 처리 // new를 붙여서 힙 메모리 실제 공간 할당
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, response ->
                         // 발생한 상태 코드를 에러 메시지로 변환하여 전송

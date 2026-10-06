@@ -10,11 +10,11 @@ import java.util.List;
 
 public record SpatialResult(
 
-        @JsonProperty("center_lat")
-        Double centerLat,
-
         @JsonProperty("center_lon")
         Double centerLon,
+
+        @JsonProperty("center_lat")
+        Double centerLat,
 
         @JsonProperty("nearby_nodes")
         List<NodeInfo> nearbyNodes
@@ -28,10 +28,13 @@ public record SpatialResult(
             @JsonProperty("distance")
             Double distance,
 
-            @JsonProperty("lat")
-            Double lat,
-
             @JsonProperty("lon")
-            Double lon
-        ) {}
+            Double lon,
+
+
+            @JsonProperty("lat")
+            Double lat
+
+
+            ) {}
 }

@@ -40,8 +40,8 @@ public class SpatialEngineService implements SpatialEngineUseCase {
 
         logger.info("SpatialEngineService Query : " + query);
 
-        return spatialEnginePorts.getFirst().execute(new SpatialEngineRequest(query.lat(), query.lon(), query.k()))
-                .onErrorResume(e -> spatialEnginePorts.getLast().execute(new SpatialEngineRequest(query.lat(), query.lon(), query.k())))
+        return spatialEnginePorts.getFirst().execute(new SpatialEngineRequest(query.lon(), query.lat(), query.k()))
+                .onErrorResume(e -> spatialEnginePorts.getLast().execute(new SpatialEngineRequest(query.lon(), query.lat(), query.k())))
                 .onErrorMap(e -> {
                     logger.error("Error occurred during failover to local engine");
                             throw new ExternalEngineException(ErrorCode.ENGINE_SERVICE_UNAVAILABLE, e);
