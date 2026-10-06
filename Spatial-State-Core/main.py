@@ -55,19 +55,19 @@ async def say_hello(name: str):
 
 class Point(BaseModel):
     id: int
-    lat: float
     lon: float
+    lat: float
 
 class SearchRequest(BaseModel):
-    my_lat : float
     my_lon : float
+    my_lat : float
     k: int = 3 # 가장 가까운 몇 개를 찾을 것인가?
 
 class DistanceRequest(BaseModel):
-    lat1: float
     lon1: float
-    lat2: float
+    lat1: float
     lon2: float
+    lat2: float
 
 
 # # 2026/08/18 추가
@@ -93,8 +93,8 @@ class MetaData(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 class SpatialLocationRecord(BaseModel):
-        lat: float
         lon: float
+        lat: float
         
         meta_data : list[MetaData] = Field(..., validation_alias="MetaData")
 
@@ -157,10 +157,10 @@ def open_csv(file_path) :
         reader = csv.DictReader(f)
 
         for row in reader :
-            lat = float(row["위도"])
             lon = float(row["경도"])
+            lat = float(row["위도"])
 
-            key = (lat, lon)
+            key = (lon, lat)
 
             node = MetaData(
                     store_id = row["상가업소번호"],
@@ -174,8 +174,8 @@ def open_csv(file_path) :
         print("grouped result : ", grouped_map.items());
     
     return [
-        SpatialLocationRecord(lat=lat, lon=lon, meta_data=meta_data)
-        for(lat, lon), meta_data in grouped_map.items()
+        SpatialLocationRecord(lon=lon,lat=lat, meta_data=meta_data)
+        for(lon,lat), meta_data in grouped_map.items()
     ]
     
 # # temp to test
@@ -185,7 +185,7 @@ def open_csv(file_path) :
     
     
 
-def calculate_haversine(lat1, lon1, lat2, lon2):
+def calculate_haversine(lon1,lat1,lon2,lat2):
     # 지구 반지름 (미터 단위)
     r = 6371000
 
@@ -212,7 +212,7 @@ def calculate_haversine(lat1, lon1, lat2, lon2):
 @app.post("/distance")
 async def get_distance(data: DistanceRequest):
 
-    distance = calculate_haversine(data.lat1, data.lon1, data.lat2, data.lon2)
+    distance = calculate_haversine(data.lon1, data.lat1, data.lon2, data.lat2)
     return {
         "origin": {"lat": data.lat1, "lon": data.lon1},
         "destination": {"lat": data.lat2, "lon": data.lon2},
@@ -243,34 +243,34 @@ async def get_distance(data: DistanceRequest):
 @app.post("/nearby")
 async def get_nearby(me: SearchRequest):
     # 1. R-tree에서 반경 내 혹은 가장 가까운 k개 ID 추출 (매우 빠름)
-    nearest_ids = list(idx.nearest((me.my_lat, me.my_lon), me.k))
+    nearest_ids = list(idx.nearest((me.my_lon, me.my_lat), me.k))
 
     results = []
     for n_id in nearest_ids:
         node = spatial_nodes[n_id]
         logger.info("node")
-        dist = calculate_haversine(me.my_lat, me.my_lon, node["lat"], node["lon"])
+        dist = calculate_haversine(me.my_lon, me.my_lat, node["lon"], node["lat"])
         results.append({
             "node_id": n_id,
             "distance_km": round(dist / 1000, 2),
-            "lat": node["lat"],
-            "lon": node["lon"]
+            "lon": node["lon"],
+            "lat": node["lat"]
         })
 
     logger.info("results:" + results.__str__())
-    return {"my_location": {"lat": me.my_lat, "lon": me.my_lon}, "nearby_locations": results}
+    return {"my_location": {"lon": me.my_lon, "lat": me.my_lat}, "nearby_locations": results}
 
 
 
-# # DTO 데이터 추출
+# DTO 데이터 추출
 spatial_nodes = {}
 for i, rec in enumerate(open_csv(r"..\S-Core-Orchestrator\src\main\resources\data\seoul-jung-gu.csv")) :
 
-    spatial_nodes[i] = {"lat": rec.lat , "lon": rec.lon}
+    spatial_nodes[i] = {"lon": rec.lon, "lat": rec.lat}
   
     # R-tree에 삽입 (반드시 사각형 형태인 (left, bottom, right, top)으로 넣어야 함)
     # 점(Point)이므로 left=right, bottom=top으로 설정
-    idx.insert(i, (rec.lat, rec.lon, rec.lat, rec.lon))
+    idx.insert(i, (rec.lon, rec.lat, rec.lon, rec.lat))
 
 
 # # 2026/08/15 추가
