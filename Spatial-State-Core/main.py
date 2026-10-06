@@ -1,38 +1,46 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from rtree import index
 from loguru import logger
 import math
 import uvicorn
 import random
 import csv
+import sys
+from collections import defaultdict
+from dataclasses import dataclass
 
+# Rtree 특정 상가의 범위 내 n개 가져옴 -> 사용자 위치와 n개 각각에 대해서 거리 연산 
 
 # 전역 변수로 인덱스 생성
 idx = index.Index()
 
 app = FastAPI()
 
+sys.stdout.reconfigure(encoding='utf-8')
 
 logger.info("Python lodded")
 
-# 가상의 상점 데이터 1,000개 생성 (테스트용)
-spatial_nodes = {}
-for i in range(1000):
-    # 0.0에서 0.1 사이의 무작위 반지름 결정 (11km 이내 내부 공간 채우기)
-    r = random.uniform(0, 0.1) 
-    
-    # 0에서 2*pi 사이의 무작위 회전 각도 결정
-    angle = random.uniform(0, 2 * math.pi)
-    
-    s_lat = 37.5559 + (r * math.sin(angle))
-    s_lon = 126.9723 + (r * math.cos(angle))
 
-    spatial_nodes[i] = {"lat": s_lat, "lon": s_lon}
+# # 가상의 상점 데이터 1,000개 생성 (테스트용)
+# spatial_nodes = {}
+# for i in range(1000):
 
-    # R-tree에 삽입 (반드시 사각형 형태인 (left, bottom, right, top)으로 넣어야 함)
-    # 점(Point)이므로 left=right, bottom=top으로 설정
-    idx.insert(i, (s_lat, s_lon, s_lat, s_lon))
+#     # 0.0에서 0.1 사이의 무작위 반지름 결정 (11km 이내 내부 공간 채우기)
+#     r = random.uniform(0, 0.1) 
+    
+#     # 0에서 2*pi 사이의 무작위 회전 각도 결정
+#     angle = random.uniform(0, 2 * math.pi)
+    
+#     s_lat = 37.5559 + (r * math.sin(angle))
+#     s_lon = 126.9723 + (r * math.cos(angle))
+
+#     spatial_nodes[i] = {"lat": s_lat, "lon": s_lon}
+
+#     # R-tree에 삽입 (반드시 사각형 형태인 (left, bottom, right, top)으로 넣어야 함)
+#     # 점(Point)이므로 left=right, bottom=top으로 설정
+#     idx.insert(i, (s_lat, s_lon, s_lat, s_lon))
+
 
 
 @app.get("/")
@@ -62,16 +70,120 @@ class DistanceRequest(BaseModel):
     lon2: float
 
 
-# 2026/08/18 추가
-class StoreNode(BaseModel):
-    store_id : str # 상가업소번호
-    name : str # 상호명
-    category_large : str #상권업종대분류명
-    category_mid : str # 상권업종중분류명
-    address : str # 도로명주소
-    lon : float # 경도
-    lat : float # 위도
+# # 2026/08/18 추가
+# class StoreNode(BaseModel):
+#     store_id : str # 상가업소번호
+#     name : str # 상호명
+#     category_large : str #상권업종대분류명
+#     category_mid : str # 상권업종중분류명
+#     address : str # 도로명주소
+#     lon : float # 경도
+#     lat : float # 위도
 
+# #  ---
+
+# 2026/10/01 추가
+class MetaData(BaseModel):
+    store_id: str
+    name: str
+    category_large: str = Field(..., validation_alias="categoryLarge")
+    category_mid: str = Field(..., validation_alias="categoryMid")
+    address: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+class SpatialLocationRecord(BaseModel):
+        lat: float
+        lon: float
+        
+        meta_data : list[MetaData] = Field(..., validation_alias="MetaData")
+
+        model_config = ConfigDict(populate_by_name=True)
+
+
+# 2026/10/01 Java와 같이 개별 클래스로 분리 필요함을 느낌.
+# class SpatialPayloadConverter :
+#     def toDomain(row: dict) -> SpatialLocationRecord:
+#         lat = row["위도"]
+#         lon = row["경도"]
+#         print("check CSV contetens : ", {csv})
+
+#         return SpatialLocationRecord(
+
+#                 MetaData(
+#                     node_id = row["상가업소번호"]
+#                     name = row["상호명"]
+#                     category_large = row["상권업종대분류명"]
+#                     category_mid = row["상권업종중분류명"]
+#                     address = row["도로명주소"]
+#                 )
+#         )
+        
+    
+
+
+    
+# 2026/09/30 추가
+def check_encoding(file_path) :
+    encodings = ['utf-8-sig', 'utf-8', 'cp949', 'euc-kr']
+    # encodings = ['cp949', 'euc-kr','utf-8', 'utf-8-sig', ]
+    for enc in encodings :
+        try:
+            print("now encoding:", {enc})
+            with open(file_path, newline='', encoding=enc) as f:
+                # 2048 바이트 만큼의 텍스트 데이터 읽어옴.잘못된 인코딩 방식일 경우 터짐.
+                f_test = f.read(2048)
+
+                f.seek(0)
+
+                # reader = csv.reader(csvfile, delimiter=' ', quotechar='|')      
+                # for i in reader :
+                #     print(i)
+
+                # return csv.reader(f)
+            # return True;
+            return True;
+            
+        except (UnicodeDecodeError) :
+            print("다음 후보:", {enc})
+    raise ValueError(f"지원하는 인코딩을 찾을 수 없습니다: {file_path}")
+
+
+#2026/10/02 추가
+def open_csv(file_path) :
+    grouped_map: dict[tuple[float, float], list[MetaData]] = defaultdict(list)
+    
+    with open(file_path, mode="r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+
+        for row in reader :
+            lat = float(row["위도"])
+            lon = float(row["경도"])
+
+            key = (lat, lon)
+
+            node = MetaData(
+                    store_id = row["상가업소번호"],
+                    name = row["상호명"],
+                    category_large = row["상권업종대분류명"],
+                    category_mid = row["상권업종중분류명"],
+                    address = row["도로명주소"]
+            )
+
+            grouped_map[key].append(node)
+        print("grouped result : ", grouped_map.items());
+    
+    return [
+        SpatialLocationRecord(lat=lat, lon=lon, meta_data=meta_data)
+        for(lat, lon), meta_data in grouped_map.items()
+    ]
+    
+# # temp to test
+# print("open_csv result : ", open_csv(r"..\S-Core-Orchestrator\src\main\resources\data\seoul-jung-gu.csv"))
+
+
+    
+    
 
 def calculate_haversine(lat1, lon1, lat2, lon2):
     # 지구 반지름 (미터 단위)
@@ -108,16 +220,36 @@ async def get_distance(data: DistanceRequest):
         "distance_km": round(distance / 1000, 2)
     }
 #2026
+# @app.post("/nearby")
+# async def get_nearby(data: SearchRequest):
+#     # 1. R-tree에서 반경 내 혹은 가장 가까운 k개 ID 추출 (매우 빠름)
+#     nearest_ids = list(idx.nearest((data.my_lat, data.my_lon), data.k))
+
+#     results = []
+#     for n_id in nearest_ids:
+#         node = spatial_nodes[n_id]
+#         logger.info("node")
+#         dist = calculate_haversine(data.my_lat, data.my_lon, node["lat"], node["lon"])
+#         results.append({
+#             "node_id": n_id,
+#             "distance_km": round(dist / 1000, 2),
+#             "lat": node["lat"],
+#             "lon": node["lon"]
+#         })
+
+#     logger.info("results:" + results.__str__())
+#     return {"my_location": {"lat": data.my_lat, "lon": data.my_lon}, "nearby_locations": results}
+
 @app.post("/nearby")
-async def get_nearby(data: SearchRequest):
+async def get_nearby(me: SearchRequest):
     # 1. R-tree에서 반경 내 혹은 가장 가까운 k개 ID 추출 (매우 빠름)
-    nearest_ids = list(idx.nearest((data.my_lat, data.my_lon), data.k))
+    nearest_ids = list(idx.nearest((me.my_lat, me.my_lon), me.k))
 
     results = []
     for n_id in nearest_ids:
         node = spatial_nodes[n_id]
         logger.info("node")
-        dist = calculate_haversine(data.my_lat, data.my_lon, node["lat"], node["lon"])
+        dist = calculate_haversine(me.my_lat, me.my_lon, node["lat"], node["lon"])
         results.append({
             "node_id": n_id,
             "distance_km": round(dist / 1000, 2),
@@ -126,34 +258,42 @@ async def get_nearby(data: SearchRequest):
         })
 
     logger.info("results:" + results.__str__())
-    return {"my_location": {"lat": data.my_lat, "lon": data.my_lon}, "nearby_locations": results}
+    return {"my_location": {"lat": me.my_lat, "lon": me.my_lon}, "nearby_locations": results}
 
 
-# 2026/08/15 추가
-def load_spatial_index(csv_path: str) -> tuple[index.INDEX, dict[int, StoreNode]]:
-    idx = index.Index()
-    nodes: dict[int, StoreNode] = {}
-    with open(csv_path, encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for i, row in enumerate(reader):
-            lat = float(row["위도"])
-            lon = float(row["경도"])
-            node = StoreNode(
-                store_id = row["상가업소번호"],
-                name = row["상호명"],
-                category_large = row["상권업종대분류명"],
-                category_mid = row["상권업종중분류명"],
-                address = row["도로명주소"],
-                lon=lon,
-                lat=lat,
-            )
-            nodes[i] = node
-            idx.insert(i, (lat, lon, lat, lon))
-    return idx, nodes
 
-    
+# # DTO 데이터 추출
+spatial_nodes = {}
+for i, rec in enumerate(open_csv(r"..\S-Core-Orchestrator\src\main\resources\data\seoul-jung-gu.csv")) :
+
+    spatial_nodes[i] = {"lat": rec.lat , "lon": rec.lon}
+  
+    # R-tree에 삽입 (반드시 사각형 형태인 (left, bottom, right, top)으로 넣어야 함)
+    # 점(Point)이므로 left=right, bottom=top으로 설정
+    idx.insert(i, (rec.lat, rec.lon, rec.lat, rec.lon))
 
 
+# # 2026/08/15 추가
+# def load_spatial_index(csv_path: str) -> tuple[index.Index, dict[int, StoreNode]]:
+#     idx = index.Index()
+#     nodes: dict[int, StoreNode] = {}
+#     with open(csv_path, encoding="utf-8") as f:
+#         reader = csv.DictReader(f)
+#         for i, row in enumerate(reader):
+#             lat = float(row["위도"])
+#             lon = float(row["경도"])
+#             node = StoreNode(
+#                 store_id = row["상가업소번호"],
+#                 name = row["상호명"],
+#                 category_large = row["상권업종대분류명"],
+#                 category_mid = row["상권업종중분류명"],
+#                 address = row["도로명주소"],
+#                 lon=lon,
+#                 lat=lat,
+#             )
+#             nodes[i] = node
+#             idx.insert(i, (lat, lon, lat, lon))
+#     return idx, nodes
 
 
 

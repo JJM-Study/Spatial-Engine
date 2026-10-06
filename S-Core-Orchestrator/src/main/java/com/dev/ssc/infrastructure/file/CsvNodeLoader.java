@@ -87,6 +87,8 @@ public class CsvNodeLoader {
         }
     }
 
+
+    // split로 , 기준으로 나누는 게 아닌, 다른 방식으로 교체할 필요 있음.
     private Map<String, String> toRow(List<String> headers, String line) {
         String[] cols = line.split(",",-1);
         Map<String, String> data = new LinkedHashMap<>();

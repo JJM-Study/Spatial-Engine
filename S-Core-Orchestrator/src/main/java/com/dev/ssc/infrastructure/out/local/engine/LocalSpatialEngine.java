@@ -13,6 +13,7 @@ import com.dev.ssc.infrastructure.out.local.LocalEngineAdapter;
 import com.dev.ssc.infrastructure.out.local.engine.dto.LocalEngineRequest;
 import com.dev.ssc.infrastructure.out.local.engine.dto.LocalEngineResponse;
 import com.github.davidmoten.rtree2.Entry;
+import com.github.davidmoten.rtree2.Node;
 import com.github.davidmoten.rtree2.RTree;
 import com.github.davidmoten.rtree2.geometry.Geometries;
 import com.github.davidmoten.rtree2.geometry.Geometry;
@@ -37,7 +38,9 @@ public class LocalSpatialEngine {
 
     public record NodeData(int nodeId, double lat, double lon) {}
 
-    final RTree<Integer, Point> localRtree = RTree.star().create();
+    // 2026/10/07 수정
+    //RTree<Integer, Point> localRtree = RTree.star().create();
+    RTree<NodeData, Point> localRtree = RTree.star().create();
 
     private final Map<Integer, NodeData> nodeStorage = new ConcurrentHashMap<>();
 
@@ -45,47 +48,60 @@ public class LocalSpatialEngine {
     private List<com.dev.ssc.core.dto.NodeData> listData;
 
     public LocalSpatialEngine(List<com.dev.ssc.core.dto.NodeData> nodeData) {
-        //  # 서울역 기준 반경 약 10km 이내 랜덤 좌표
-        double centerLat = 37.5559;
-        double centerLon = 126.9723;
-        final double radiusInMeters = 10000; // 10km 내
 
-        final double meterPerLatDegree = 111000.0;
-        final double meterPerLotDegree = 111000.0 * Math.cos(Math.toRadians(centerLat));
+//        logger.info("nodeData : {}" ,nodeData);
 
-        // 10km를 위도/경도 단위의 '최대 반지름'으로 변환
-        double maxDeltaLat = radiusInMeters / meterPerLatDegree;
-        double maxDeltaLon = radiusInMeters / meterPerLotDegree;
+//        //  # 서울역 기준 반경 약 10km 이내 랜덤 좌표
+//        double centerLat = 37.5559;
+//        double centerLon = 126.9723;
+//        final double radiusInMeters = 10000; // 10km 내
 
-        for (int i = 0; i < 1000; i++) {
-            double angle = Math.random() * 2 * Math.PI;
-            double r = Math.sqrt(Math.random());
+//        final double meterPerLatDegree = 111000.0;
+//        final double meterPerLotDegree = 111000.0 * Math.cos(Math.toRadians(centerLat));
+//
+//        // 10km를 위도/경도 단위의 '최대 반지름'으로 변환
+//        double maxDeltaLat = radiusInMeters / meterPerLatDegree;
+//        double maxDeltaLon = radiusInMeters / meterPerLotDegree;
 
-            double randomLat = centerLat + (r * maxDeltaLat * Math.sin(angle));
-            double randomLon = centerLon + (r * maxDeltaLon * Math.cos(angle));
+//        for (int i = 0; i < 1000; i++) {
+//            double angle = Math.random() * 2 * Math.PI;
+//            double r = Math.sqrt(Math.random());
+//
+//            double randomLat = centerLat + (r * maxDeltaLat * Math.sin(angle));
+//            double randomLon = centerLon + (r * maxDeltaLon * Math.cos(angle));
+//
+//            nodeStorage.put(i, new NodeData(i, randomLat, randomLon));
+//
+//
+//            localRtree.add(i, Geometries.point(randomLat, randomLon));
+//        }
 
-            nodeStorage.put(i, new NodeData(i, randomLat, randomLon));
+        for (int i = 0; i < nodeData.size(); i++) {
 
-
-            localRtree.add(i, Geometries.point(randomLat, randomLon));
+            // 2026/10/07 수정
+            //localRtree = localRtree.add(i, Geometries.point(nodeData.get(i).lat(), nodeData.get(i).lon()));
+            localRtree = localRtree.add(new NodeData(i, nodeData.get(i).lat(), nodeData.get(i).lon()), Geometries.point(nodeData.get(i).lat(), nodeData.get(i).lon()));
         }
-        logger.info("Rtree 임의 10km 내 장소 1000군데 할당 완료.");
+
+//        logger.info("Rtree 임의 10km 내 장소 1000군데 할당 완료.");
+        logger.info("Rtree 인덱스 생성 완료");
+        logger.info("localRtree: {}", localRtree.asString());
     }
 
     public Mono<LocalEngineResponse> get_nearby(LocalEngineRequest request) {
         logger.info("Local Get_Nearby executed");
 
-        int k = 3;
-
         Point myPoint = Geometries.point(request.lat(), request.lon());
+        logger.info("myPoint:{}", myPoint);
+//        Iterable<Entry<Integer, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, request.k());
+        Iterable<Entry<NodeData, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, request.k());
 
-        Iterable<Entry<Integer, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, k);
+        logger.info("nearestEntries: {}", nearestEntries);
 
         List<LocalEngineResponse.Location> locations = new ArrayList<>();
 
-        for(Entry<Integer, Point> entry : nearestEntries){
-            Integer nodeId = entry.value();
-            NodeData node = nodeStorage.get(nodeId);
+        for(Entry<NodeData, Point> entry : nearestEntries){
+            NodeData node = entry.value(); // 2026/10/06 nodeStorage는 이중 인덱싱 되니까, Rtree 자체를 <NodeData, ...> 식으로 놓는 방법 고려.
 
             if (node != null) {
 
@@ -103,6 +119,8 @@ public class LocalSpatialEngine {
                 );
             }
         }
+
+        logger.info("result : {}", locations);
 
         return Mono.just(new LocalEngineResponse(
                         new LocalEngineResponse.MyLocation(request.lat(), request.lon()),
