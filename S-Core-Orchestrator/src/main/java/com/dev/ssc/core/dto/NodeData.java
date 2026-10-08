@@ -19,7 +19,7 @@ public record NodeData (
 
     public record MetaNode (
 
-    String nodeId,
+    String shopId,
     String name,
     String categoryLarge,
     String categoryMid,

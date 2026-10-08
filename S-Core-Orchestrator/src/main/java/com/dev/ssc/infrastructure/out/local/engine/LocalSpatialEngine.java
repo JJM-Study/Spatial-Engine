@@ -26,6 +26,7 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 //import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,7 +37,8 @@ public class LocalSpatialEngine {
 
     private static final Logger logger = LogManager.getLogger(LocalSpatialEngine.class);
 
-    public record NodeData(int nodeId, double lon, double lat) {}
+//    public record NodeData(int nodeId, double lon, double lat) {}
+    public record NodeData(int nodeId, List<String> externalId ,double lon, double lat) {}
 
     // 2026/10/07 수정
     //RTree<Integer, Point> localRtree = RTree.star().create();
@@ -80,12 +82,18 @@ public class LocalSpatialEngine {
 
             // 2026/10/07 수정
             //localRtree = localRtree.add(i, Geometries.point(nodeData.get(i).lat(), nodeData.get(i).lon()));
-            localRtree = localRtree.add(new NodeData(i, nodeData.get(i).lon(), nodeData.get(i).lat()),Geometries.point(nodeData.get(i).lon(), nodeData.get(i).lat()));
+            //localRtree = localRtree.add(new NodeData(i, nodeData.get(i).lon(), nodeData.get(i).lat()),Geometries.point(nodeData.get(i).lon(), nodeData.get(i).lat()));
+            localRtree = localRtree.add(new NodeData(
+                    i,
+                    nodeData.get(i).metaNodes().stream().map(com.dev.ssc.core.dto.NodeData.MetaNode::shopId).toList(),
+                    nodeData.get(i).lon(),
+                    nodeData.get(i).lat()),
+                    Geometries.point(nodeData.get(i).lon(), nodeData.get(i).lat()));
         }
 
 //        logger.info("Rtree 임의 10km 내 장소 1000군데 할당 완료.");
         logger.info("Rtree 인덱스 생성 완료");
-        logger.info("localRtree: {}", localRtree.asString());
+//        logger.info("localRtree: {}", localRtree.asString());
     }
 
     public Mono<LocalEngineResponse> get_nearby(LocalEngineRequest request) {
@@ -96,7 +104,7 @@ public class LocalSpatialEngine {
 //        Iterable<Entry<Integer, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, request.k());
         Iterable<Entry<NodeData, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, request.k());
 
-        logger.info("nearestEntries: {}", nearestEntries);
+//        logger.info("nearestEntries: {}", nearestEntries);
 
         List<LocalEngineResponse.Location> locations = new ArrayList<>();
 
