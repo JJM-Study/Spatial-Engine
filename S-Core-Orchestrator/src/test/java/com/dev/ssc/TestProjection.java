@@ -34,13 +34,14 @@ public class TestProjection {
     // projection 테스트용
     private List<NodeData> nodeData;
 
+
+
     private TestProjection(@Qualifier("forSpatialNodes") List<NodeData> nodeData) {
         this.nodeData = nodeData;
     }
 
     Logger logger = LoggerFactory.getLogger(TestProjection.class);
 
-    private record TestNode(int nodeId, double lon, double lat) {};
 
     RTree<LocalSpatialEngine.NodeData, Point> rtree = RTree.star().create();
     double lon = 126.9842;
@@ -103,8 +104,6 @@ public class TestProjection {
         logger.info("rtree2 size : {}", rtree2.size());
 
 
-
-
         double myLonToMeter = R * Math.toRadians(lon) * Math.cos(Math.toRadians(lat));
         double myLatToMeter = R * Math.toRadians(lat);
 
@@ -128,7 +127,9 @@ public class TestProjection {
 
         record CheckDegreeToMeter(
                 int nodeId,
-                List<String> shopId,
+
+                List<String> degreeShop,
+                List<String> meterShopId,
                 double degreeLon,
                 double degreeLat,
                 double meterLon,
@@ -137,25 +138,36 @@ public class TestProjection {
         Iterator<Entry<NodeData, Point>> degreeIterator = D_nearest.iterator();
         Iterator<Entry<NodeDataToMeter, Point>> meterIterator = M_nearest.iterator();
 
+
         int i = 0;
+
+        // 어차피 degree와 meter의 nearest 순서대로 짝지어져 queue되어 있을 것이므로 그냥 인출하자.
+
         while (degreeIterator.hasNext() && meterIterator.hasNext()) {
 
             NodeData degreeData = degreeIterator.next().value();
             NodeDataToMeter meterData  = meterIterator.next().value();
 
+
             CheckDegreeToMeter check = new CheckDegreeToMeter(
                     i++,
+                    degreeData.metaNodes().stream().map(NodeData.MetaNode::shopId).toList(),
                     meterData.externalId(),
-                    degreeData.lon(),
-                    degreeData.lat(),
+                    Math.toRadians(degreeData.lon()) + Math.cos(lat),
+                    Math.toRadians(degreeData.lat()),
                     meterData.lon,
                     meterData.lat
             );
 
+            logger.info("degree Data - degree_shopId {} : lon {}, lat {}", check.meterShopId, check.degreeLon, check.degreeLat); // 중간에 record 추가해서 shopId도 나오게 하자.
+            logger.info("meter Data  - meter_shopId {} : lon {}, lat {}", check.meterShopId(), check.meterLon, check.meterLat);
+
             // 단순 오차가 아닌 상가의 순위가 얼마나 달라졌느냐.
-            // asOrderedList에서 자체적으로 받은 순서대로
+            // asOrderedList에서 자체적으로 받은 순서대로 오름차순
             // sort(Collections.sort(list, this.comparator);) 되는 거 확인함. 그냥 return 순차적으로 출력하면 됨.
-            logger.info("Margin - degree/meter shopId-{}, Lon {} Lan {} ", check.shopId(), check.degreeLon/check.meterLon, check.degreeLat/check.degreeLat);
+
+
+            logger.info("Margin - degree/meter shopId-{}, Lon {} Lan {} ", check.meterShopId(), check.degreeLon/check.meterLon, check.degreeLat/check.degreeLat);
 
         }
 
