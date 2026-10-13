@@ -153,13 +153,13 @@ public class TestProjection {
                     i++,
                     degreeData.metaNodes().stream().map(NodeData.MetaNode::shopId).toList(),
                     meterData.externalId(),
-                    Math.toRadians(degreeData.lon()) + Math.cos(lat),
-                    Math.toRadians(degreeData.lat()),
+                    R * Math.toRadians(degreeData.lon()) + Math.cos(Math.toRadians(degreeData.lat())),
+                    R * Math.toRadians(degreeData.lat()),
                     meterData.lon,
                     meterData.lat
             );
 
-            logger.info("degree Data - degree_shopId {} : lon {}, lat {}", check.meterShopId, check.degreeLon, check.degreeLat); // 중간에 record 추가해서 shopId도 나오게 하자.
+            logger.info("degree Data - degree_shopId {} : lon {}, lat {}", check.degreeShop, check.degreeLon, check.degreeLat); // 중간에 record 추가해서 shopId도 나오게 하자.
             logger.info("meter Data  - meter_shopId {} : lon {}, lat {}", check.meterShopId(), check.meterLon, check.meterLat);
 
             // 단순 오차가 아닌 상가의 순위가 얼마나 달라졌느냐.
@@ -167,7 +167,7 @@ public class TestProjection {
             // sort(Collections.sort(list, this.comparator);) 되는 거 확인함. 그냥 return 순차적으로 출력하면 됨.
 
 
-            logger.info("Margin - degree/meter shopId-{}, Lon {} Lan {} ", check.meterShopId(), check.degreeLon/check.meterLon, check.degreeLat/check.degreeLat);
+            logger.info("Margin - degree/meter shopId-{}, Lon {} Lat {} ", check.meterShopId(), check.degreeLon/check.meterLon, check.degreeLat/check.meterLat);
 
         }
 
