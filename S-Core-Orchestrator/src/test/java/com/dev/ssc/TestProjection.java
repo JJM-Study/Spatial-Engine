@@ -19,25 +19,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.LogManager;
 import java.util.stream.IntStream;
 
 @SpringBootTest
 public class TestProjection {
 
-    @Mock
+    @Autowired
     LocalSpatialEngine localSpatialEngine;
 
 
     // projection 테스트용
     private List<NodeData> nodeData;
 
-
-
-    private TestProjection(@Qualifier("forSpatialNodes") List<NodeData> nodeData) {
+    private TestProjection(
+            @Qualifier("forSpatialNodes") List<NodeData> nodeData) {
         this.nodeData = nodeData;
+
     }
 
     Logger logger = LoggerFactory.getLogger(TestProjection.class);
@@ -46,11 +45,12 @@ public class TestProjection {
     RTree<LocalSpatialEngine.NodeData, Point> rtree = RTree.star().create();
     double lon = 126.9842;
     double lat = 37.5615;
-    int k = 3;
+    int k = 100;
 
-    record NodeDataToMeter(int nodeId, List<String> externalId, double lon, double lat) {}
+    record NodeDataToMeter(int nodeId, List<String> externalId, double lon, double lat) {
+    }
 
-//    SpatialResult
+
     @Test
     public void Calculator() {
 
@@ -67,20 +67,12 @@ public class TestProjection {
         NodeDataToMeter nodeDataToMeter = null;
 
 
-
         // N개 (CSV 기준 약 2만 4천)의 순환을 통해 lon, lat 전부 meter로 환산 기능 필요.
-
-//        for (int i = 0; i<nodeData.size(); i++) {
-            //i, nodeData.get(i).metaNodes().stream().map(NodeData.MetaNode::shopId).toList(), nodeData.get(i).lon(), nodeData.get(i).lat()
-//            nodeDataToMeter = java.util.stream.IntStream.range(0, nodeData.size())
-//        }
-
-
 
         RTree<NodeDataToMeter, Point> rtree = RTree.star().create();
 
         RTree<NodeData, Point> rtree2 = RTree.star().create();
-        for(int i = 0; i < nodeData.size() ; i++) {
+        for (int i = 0; i < nodeData.size(); i++) {
             NodeData data = nodeData.get(i);
 
 
@@ -88,11 +80,11 @@ public class TestProjection {
                     i,
                     data.metaNodes().stream()
                             .map(NodeData.MetaNode::shopId).toList(),
-                    R * Math.toRadians(data.lon())* Math.cos(Math.toRadians(data.lat())),
+                    R * Math.toRadians(data.lon()) * sLat,
                     R * Math.toRadians(data.lat())
-                    );
+            );
 
-             Point point = Geometries.point(nodeDataToMeter.lon, nodeDataToMeter.lat);
+            Point point = Geometries.point(nodeDataToMeter.lon, nodeDataToMeter.lat);
 
             rtree = rtree.add(nodeDataToMeter, point);
 
@@ -104,21 +96,20 @@ public class TestProjection {
         logger.info("rtree2 size : {}", rtree2.size());
 
 
-        double myLonToMeter = R * Math.toRadians(lon) * Math.cos(Math.toRadians(lat));
+        double myLonToMeter = R * Math.toRadians(lon) * sLat;
         double myLatToMeter = R * Math.toRadians(lat);
 
         logger.info("my Meter Lon : {}", myLonToMeter);
         logger.info("my Meter Lat : {}", myLatToMeter);
 
 
-
         Point myPoint = Geometries.point(myLonToMeter, myLatToMeter);
 
-        Iterable<Entry<NodeDataToMeter, Point>> M_nearest = rtree.nearest(myPoint,100000, 100);
+        Iterable<Entry<NodeDataToMeter, Point>> M_nearest = rtree.nearest(myPoint, Double.MAX_VALUE, 100);
 
         Point myPoint2 = Geometries.point(lon, lat);
 
-        Iterable<Entry<NodeData, Point>> D_nearest = rtree2.nearest(myPoint2, 100000, 100);
+        Iterable<Entry<NodeData, Point>> D_nearest = rtree2.nearest(myPoint2, Double.MAX_VALUE, 100);
 
         logger.info("Meter nearest Entries : {}", M_nearest);
 
@@ -133,7 +124,8 @@ public class TestProjection {
                 double degreeLon,
                 double degreeLat,
                 double meterLon,
-                double meterLat) {}
+                double meterLat) {
+        }
 
         Iterator<Entry<NodeData, Point>> degreeIterator = D_nearest.iterator();
         Iterator<Entry<NodeDataToMeter, Point>> meterIterator = M_nearest.iterator();
@@ -143,36 +135,77 @@ public class TestProjection {
 
         // 어차피 degree와 meter의 nearest 순서대로 짝지어져 queue되어 있을 것이므로 그냥 인출하자.
 
+
+        //=== nearest TOP 100 ===
+
+        record misMatch(List<String> misMatchDegree, List<String> misMatchMeter) {
+        }
+
+        Map<Integer, misMatch> misMatchMap = new HashMap<>();
+//        int misCount;
+
         while (degreeIterator.hasNext() && meterIterator.hasNext()) {
 
             NodeData degreeData = degreeIterator.next().value();
-            NodeDataToMeter meterData  = meterIterator.next().value();
-
+            NodeDataToMeter meterData = meterIterator.next().value();
 
             CheckDegreeToMeter check = new CheckDegreeToMeter(
                     i++,
                     degreeData.metaNodes().stream().map(NodeData.MetaNode::shopId).toList(),
                     meterData.externalId(),
-                    R * Math.toRadians(degreeData.lon()) + Math.cos(Math.toRadians(degreeData.lat())),
+                    R * Math.toRadians(degreeData.lon()) * sLat,
                     R * Math.toRadians(degreeData.lat()),
                     meterData.lon,
                     meterData.lat
             );
 
-            logger.info("degree Data - degree_shopId {} : lon {}, lat {}", check.degreeShop, check.degreeLon, check.degreeLat); // 중간에 record 추가해서 shopId도 나오게 하자.
-            logger.info("meter Data  - meter_shopId {} : lon {}, lat {}", check.meterShopId(), check.meterLon, check.meterLat);
+            logger.info("degree Data - degree_shopId {} : rank {}, lon {}, lat {}", check.degreeShop, i, check.degreeLon, check.degreeLat); // 중간에 record 추가해서 shopId도 나오게 하자.
+            logger.info("meter Data  - meter_shopId {} : rank {}, lon {}, lat {}", check.meterShopId(), i, check.meterLon, check.meterLat);
+
+
+            if (!check.meterShopId.equals(check.degreeShop)) {
+                misMatchMap.put(i, new misMatch(check.degreeShop, check.meterShopId));
+            }
 
             // 단순 오차가 아닌 상가의 순위가 얼마나 달라졌느냐.
             // asOrderedList에서 자체적으로 받은 순서대로 오름차순
             // sort(Collections.sort(list, this.comparator);) 되는 거 확인함. 그냥 return 순차적으로 출력하면 됨.
 
 
-            logger.info("Margin - degree/meter shopId-{}, Lon {} Lat {} ", check.meterShopId(), check.degreeLon/check.meterLon, check.degreeLat/check.meterLat);
+            // 2026/10/13 식 제대로 됐는지 재차 확인 필요. => 완료
+            logger.info("Margin - degree/meter shopId-{}, Lon {} Lat {} ", check.meterShopId(), check.degreeLon / check.meterLon, check.degreeLat / check.meterLat);
+
+        }
+
+        for (Map.Entry<Integer, misMatch> map : misMatchMap.entrySet()) {
+            logger.info("misMatching list = NodeId : {}, Degree Id : {} ≠ Meter Id : {}", map.getKey(), map.getValue().misMatchDegree, map.getValue().misMatchMeter);
+
+        }
+
+        logger.info("mismatching count : {}", misMatchMap.size());
+
+        record HaverDistance(List<String> externalId, double lon, double lat, double distance) {}
+
+        double result;
+
+        List<HaverDistance> haverDistanceList = new ArrayList<>();
+
+
+        for(int j = 0; j < nodeData.size(); j++) {
+
+            result = localSpatialEngine.calculateHaversineMeter(lon, lat, nodeData.get(i).lon(), nodeData.get(i).lat());
+
+            HaverDistance item = new HaverDistance(
+                    nodeData.get(i).metaNodes().stream().map(NodeData.MetaNode::shopId).toList(),
+                    nodeData.get(i).lon(),
+                    nodeData.get(i).lat(),
+                    result
+            );
+
+            haverDistanceList.add(item);
 
         }
 
     }
-
-
 
 }
