@@ -208,6 +208,7 @@ public class TestProjection {
                     result
             );
 
+
             haverDistanceList.add(item);
 
         }
@@ -247,7 +248,6 @@ public class TestProjection {
 
         logger.info("degree misCount : {}", d_mis_count);
         logger.info("meter misCount : {}", m_mis_count);
-
 
 
     }
