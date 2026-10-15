@@ -183,12 +183,12 @@ public class TestProjection {
 
         }
 
-        for (Map.Entry<Integer, misMatch> map : misMatchMap.entrySet()) {
-            logger.info("misMatching list = NodeId : {}, Degree Id : {} ≠ Meter Id : {}", map.getKey(), map.getValue().misMatchDegree, map.getValue().misMatchMeter);
-
-        }
-
-        logger.info("mismatching count : {}", misMatchMap.size());
+//        for (Map.Entry<Integer, misMatch> map : misMatchMap.entrySet()) {
+//            logger.info("misMatching list = NodeId : {}, Degree Id : {} ≠ Meter Id : {}", map.getKey(), map.getValue().misMatchDegree, map.getValue().misMatchMeter);
+//
+//        }
+//
+//        logger.info("mismatching count : {}", misMatchMap.size());
 
         record HaverDistance(List<String> externalId, double lon, double lat, double distance) {}
 
@@ -246,9 +246,8 @@ public class TestProjection {
             }
         }
 
-        logger.info("degree misCount : {}", d_mis_count);
-        logger.info("meter misCount : {}", m_mis_count);
-
+        logger.info("degree miscount with haversine : {}", d_mis_count);
+        logger.info("meter miscount with haversine : {}", m_mis_count);
 
     }
 
