@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.*;
 import java.util.logging.LogManager;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 @SpringBootTest
 public class TestProjection {
@@ -105,15 +106,16 @@ public class TestProjection {
 
         Point myPoint = Geometries.point(myLonToMeter, myLatToMeter);
 
-        Iterable<Entry<NodeDataToMeter, Point>> M_nearest = rtree.nearest(myPoint, Double.MAX_VALUE, 100);
+        Iterable<Entry<NodeDataToMeter, Point>> m_nearest = rtree.nearest(myPoint, Double.MAX_VALUE, 100);
 
         Point myPoint2 = Geometries.point(lon, lat);
 
-        Iterable<Entry<NodeData, Point>> D_nearest = rtree2.nearest(myPoint2, Double.MAX_VALUE, 100);
+        Iterable<Entry<NodeData, Point>> d_nearest = rtree2.nearest(myPoint2, Double.MAX_VALUE, 100);
 
-        logger.info("Meter nearest Entries : {}", M_nearest);
+        logger.info("Meter nearest Entries : {}", m_nearest);
 
-        logger.info("Rtree2 (Degree to Meter) nearest Entries : {}", D_nearest);
+        logger.info("Rtree2 (Degree to Meter) nearest Entries : {}", d_nearest);
+
 
 
         record CheckDegreeToMeter(
@@ -127,8 +129,8 @@ public class TestProjection {
                 double meterLat) {
         }
 
-        Iterator<Entry<NodeData, Point>> degreeIterator = D_nearest.iterator();
-        Iterator<Entry<NodeDataToMeter, Point>> meterIterator = M_nearest.iterator();
+        Iterator<Entry<NodeData, Point>> degreeIterator = d_nearest.iterator();
+        Iterator<Entry<NodeDataToMeter, Point>> meterIterator = m_nearest.iterator();
 
 
         int i = 0;
@@ -144,12 +146,15 @@ public class TestProjection {
         Map<Integer, misMatch> misMatchMap = new HashMap<>();
 //        int misCount;
 
+        List<CheckDegreeToMeter> check = new ArrayList<>();
+
         while (degreeIterator.hasNext() && meterIterator.hasNext()) {
 
             NodeData degreeData = degreeIterator.next().value();
             NodeDataToMeter meterData = meterIterator.next().value();
 
-            CheckDegreeToMeter check = new CheckDegreeToMeter(
+            check.add(
+                    new CheckDegreeToMeter(
                     i++,
                     degreeData.metaNodes().stream().map(NodeData.MetaNode::shopId).toList(),
                     meterData.externalId(),
@@ -157,15 +162,16 @@ public class TestProjection {
                     R * Math.toRadians(degreeData.lat()),
                     meterData.lon,
                     meterData.lat
+                    )
             );
 
-            logger.info("degree Data - degree_shopId {} : rank {}, lon {}, lat {}", check.degreeShop, i, check.degreeLon, check.degreeLat); // 중간에 record 추가해서 shopId도 나오게 하자.
-            logger.info("meter Data  - meter_shopId {} : rank {}, lon {}, lat {}", check.meterShopId(), i, check.meterLon, check.meterLat);
+//            logger.info("degree Data - degree_shopId {} : rank {}, lon {}, lat {}", check.degreeShop, i, check.degreeLon, check.degreeLat); // 중간에 record 추가해서 shopId도 나오게 하자.
+//            logger.info("meter Data  - meter_shopId {} : rank {}, lon {}, lat {}", check.meterShopId(), i, check.meterLon, check.meterLat);
 
 
-            if (!check.meterShopId.equals(check.degreeShop)) {
-                misMatchMap.put(i, new misMatch(check.degreeShop, check.meterShopId));
-            }
+//            if (!check.meterShopId.equals(check.degreeShop)) {
+//                misMatchMap.put(i, new misMatch(check.degreeShop, check.meterShopId));
+//            }
 
             // 단순 오차가 아닌 상가의 순위가 얼마나 달라졌느냐.
             // asOrderedList에서 자체적으로 받은 순서대로 오름차순
@@ -173,7 +179,7 @@ public class TestProjection {
 
 
             // 2026/10/13 식 제대로 됐는지 재차 확인 필요. => 완료
-            logger.info("Margin - degree/meter shopId-{}, Lon {} Lat {} ", check.meterShopId(), check.degreeLon / check.meterLon, check.degreeLat / check.meterLat);
+//            logger.info("Margin - degree/meter shopId-{}, Lon {} Lat {} ", check.meterShopId(), check.degreeLon / check.meterLon, check.degreeLat / check.meterLat);
 
         }
 
@@ -193,18 +199,56 @@ public class TestProjection {
 
         for(int j = 0; j < nodeData.size(); j++) {
 
-            result = localSpatialEngine.calculateHaversineMeter(lon, lat, nodeData.get(i).lon(), nodeData.get(i).lat());
+            result = localSpatialEngine.calculateHaversineMeter(lon, lat, nodeData.get(j).lon(), nodeData.get(j).lat());
 
             HaverDistance item = new HaverDistance(
-                    nodeData.get(i).metaNodes().stream().map(NodeData.MetaNode::shopId).toList(),
-                    nodeData.get(i).lon(),
-                    nodeData.get(i).lat(),
+                    nodeData.get(j).metaNodes().stream().map(NodeData.MetaNode::shopId).toList(),
+                    nodeData.get(j).lon(),
+                    nodeData.get(j).lat(),
                     result
             );
 
             haverDistanceList.add(item);
 
         }
+
+
+
+
+        // Top 100을 선정
+         List<HaverDistance> ranked = haverDistanceList
+                .stream()
+                .sorted(Comparator.comparingDouble(HaverDistance::distance))
+                .limit(k)
+                .toList();
+
+
+        logger.info("nearest Distance with Haversine Top 100 : {}", ranked);
+
+//
+//        List<Entry<NodeData, Point>> d_haver_compare = StreamSupport.stream(d_nearest.spliterator(),false).toList();
+//        List<Entry<NodeDataToMeter, Point>> m_haver_compare = StreamSupport.stream(m_nearest.spliterator(), false).toList();  //m_nearest
+
+        int d_mis_count = 0;
+        int m_mis_count = 0;
+
+        for(int z = 0; z < k ; z++) {
+
+            if(!ranked.get(z).externalId.stream().toList().equals(check.get(z).degreeShop().stream().toList()))
+            {
+                d_mis_count++;
+            }
+
+            if(!ranked.get(z).externalId.stream().toList().equals(check.get(z).meterShopId.stream().toList()))
+            {
+                m_mis_count++;
+            }
+        }
+
+        logger.info("degree misCount : {}", d_mis_count);
+        logger.info("meter misCount : {}", m_mis_count);
+
+
 
     }
 
