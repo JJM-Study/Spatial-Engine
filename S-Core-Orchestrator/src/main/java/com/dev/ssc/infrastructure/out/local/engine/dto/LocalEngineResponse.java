@@ -26,9 +26,9 @@ public record LocalEngineResponse(
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public record Location(
         int nodeId,
+        List<String> externalId,
         Double distanceKm,
         Double lon,
-
         Double lat
     ) {}
 
@@ -40,6 +40,7 @@ public record LocalEngineResponse(
                 this.nearbyLocations.stream()
                         .map(loc -> new SpatialResult.NodeInfo(
                                         loc.nodeId(),
+                                        loc.externalId,
                                         loc.distanceKm(),
                                         loc.lon(),
                                         loc.lat()

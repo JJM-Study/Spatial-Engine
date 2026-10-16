@@ -44,12 +44,15 @@ public class LocalSpatialEngine {
     //RTree<Integer, Point> localRtree = RTree.star().create();
     RTree<NodeData, Point> localRtree = RTree.star().create();
 
-    private final Map<Integer, NodeData> nodeStorage = new ConcurrentHashMap<>();
 
+    static final double R = 6371000;
+
+    static double sLat = Math.cos(Math.toRadians(37.56)); // 기준 위도 . 서울특별시 기준
 
     private List<com.dev.ssc.core.dto.NodeData> listData;
 
     public LocalSpatialEngine(List<com.dev.ssc.core.dto.NodeData> nodeData) {
+
 
 //        logger.info("nodeData : {}" ,nodeData);
 
@@ -88,7 +91,10 @@ public class LocalSpatialEngine {
                     nodeData.get(i).metaNodes().stream().map(com.dev.ssc.core.dto.NodeData.MetaNode::shopId).toList(),
                     nodeData.get(i).lon(),
                     nodeData.get(i).lat()),
-                    Geometries.point(nodeData.get(i).lon(), nodeData.get(i).lat()));
+//                    Geometries.point(nodeData.get(i).lon(), nodeData.get(i).lat()));
+                    Geometries.point(
+                            R * Math.toRadians(nodeData.get(i).lon()) * sLat, // lon - 경도
+                            R * Math.toRadians(nodeData.get(i).lat())));
         }
 
 //        logger.info("Rtree 임의 10km 내 장소 1000군데 할당 완료.");
@@ -99,10 +105,12 @@ public class LocalSpatialEngine {
     public Mono<LocalEngineResponse> get_nearby(LocalEngineRequest request) {
         logger.info("Local Get_Nearby executed");
 
-        Point myPoint = Geometries.point(request.lon(), request.lat());
-        logger.info("myPoint:{}", myPoint);
+        //Point myPoint = Geometries.point(request.lon(), request.lat());
+        Point myPoint = Geometries.point(R * Math.toRadians(request.lon()) * sLat,
+                                         R * Math.toRadians(request.lat()));
+
 //        Iterable<Entry<Integer, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, request.k());
-        Iterable<Entry<NodeData, Point>> nearestEntries = localRtree.nearest(myPoint, 100000, request.k());
+        Iterable<Entry<NodeData, Point>> nearestEntries = localRtree.nearest(myPoint, Double.MAX_VALUE, request.k());
 
 //        logger.info("nearestEntries: {}", nearestEntries);
 
@@ -121,6 +129,7 @@ public class LocalSpatialEngine {
 
                 locations.add(new LocalEngineResponse.Location(
                         node.nodeId(),
+                        node.externalId,
                         roundedDistanceKm,
                         node.lon,
                         node.lat

@@ -25,6 +25,9 @@ public record SpatialResult(
             @JsonProperty("node_id")
             int nodeId,
 
+            @JsonProperty("external_id")
+            List<String> externalId,
+
             @JsonProperty("distance")
             Double distance,
 

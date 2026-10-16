@@ -25,6 +25,10 @@ public record NearbyResponse (
 
             @JsonProperty("node_id")
             int nodeId,
+
+            @JsonProperty("external_id")
+            List<String> externalId,
+
             @JsonProperty("distance_km")
             Double distanceKm,
             @JsonProperty("lon")
@@ -41,6 +45,7 @@ public record NearbyResponse (
                 this.nearbyLocations.stream()
                         .map(loc -> new SpatialResult.NodeInfo(
                                 loc.nodeId(),
+                                loc.externalId,
                                 loc.distanceKm(),
                                 loc.lon(),
                                 loc.lat()

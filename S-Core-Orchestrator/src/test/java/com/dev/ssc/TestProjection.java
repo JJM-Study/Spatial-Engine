@@ -249,6 +249,10 @@ public class TestProjection {
         logger.info("degree miscount with haversine : {}", d_mis_count);
         logger.info("meter miscount with haversine : {}", m_mis_count);
 
+
+        localSpatialEngine.get_nearby(new LocalEngineRequest(lon, lat, k));
+
+
     }
 
 }
