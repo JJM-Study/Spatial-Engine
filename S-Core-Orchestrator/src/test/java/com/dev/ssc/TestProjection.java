@@ -5,6 +5,7 @@ import com.dev.ssc.core.dto.SpatialResult;
 import com.dev.ssc.infrastructure.file.CsvNodeLoader;
 import com.dev.ssc.infrastructure.out.local.engine.LocalSpatialEngine;
 import com.dev.ssc.infrastructure.out.local.engine.dto.LocalEngineRequest;
+import com.dev.ssc.infrastructure.out.local.engine.dto.LocalEngineResponse;
 import com.github.davidmoten.rtree2.Entry;
 import com.github.davidmoten.rtree2.RTree;
 import com.github.davidmoten.rtree2.geometry.Geometries;
@@ -250,8 +251,24 @@ public class TestProjection {
         logger.info("meter miscount with haversine : {}", m_mis_count);
 
 
-        localSpatialEngine.get_nearby(new LocalEngineRequest(lon, lat, k));
+        LocalEngineResponse getResult = localSpatialEngine.get_nearby(new LocalEngineRequest(lon, lat, k)).block();
 
+        int last_count = 0;
+
+            for (int w =0; w < k ; w++) {
+
+//                logger.info("ex {},", getResult.nearbyLocations().get(w).externalId());
+
+                if (!getResult.nearbyLocations().get(w).externalId().equals(ranked.get(w).externalId)) {
+
+                    logger.info("mis match externalId! : {}", getResult.nearbyLocations().get(w).externalId());
+                    last_count++;
+                }
+            }
+
+
+
+        logger.info("total mis match : {}",last_count);
 
     }
 
