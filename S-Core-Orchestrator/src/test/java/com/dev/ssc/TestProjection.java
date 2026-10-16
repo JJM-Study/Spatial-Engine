@@ -265,9 +265,6 @@ public class TestProjection {
                     last_count++;
                 }
             }
-
-
-
         logger.info("total mis match : {}",last_count);
 
     }
